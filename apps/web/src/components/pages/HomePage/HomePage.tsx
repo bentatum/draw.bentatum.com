@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Stage, Layer, Line } from "react-konva";
 import useDimensions from "@/lib/useDimensions";
 import clsx from "clsx";
 import { PencilIcon, HandRaisedIcon } from "@heroicons/react/24/outline";
+import io from "socket.io-client";
+import Konva from "konva";
 
+const socket = io('http://localhost:3001');
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ControlButton: React.FC<any> = ({ onClick, selected, children, className, ...props }) => {
   return (
     <button
@@ -24,6 +29,7 @@ const ControlButton: React.FC<any> = ({ onClick, selected, children, className, 
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const StrokeWidthButtons: React.FC<any> = ({ setBrushRadius, brushRadius }) => {
   const strokeWidths = [2, 8, 15];
   return (
@@ -45,6 +51,7 @@ const StrokeWidthButtons: React.FC<any> = ({ setBrushRadius, brushRadius }) => {
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ColorPicker: React.FC<any> = ({ setColor, color }) => {
   const presetColors = [
     { name: "black", hex: "#000000" },
@@ -86,37 +93,48 @@ const HomePage = () => {
   const [color, setColor] = useState("#000000");
   const [brushRadius, setBrushRadius] = useState(4);
   const [brushOpacity, setBrushOpacity] = useState(1);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [lines, setLines] = useState<any[]>([]);
   const [scale, setScale] = useState(1);
-  const [tool, setTool] = useState("pencil"); // New state for tool selection
+  const [tool, setTool] = useState("pencil");
   const isDrawing = useRef(false);
-  const stageRef = useRef<any>(null);
-  const stageContainerRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef(null);
+  const stageContainerRef = useRef(null);
+  const dragStartPos = useRef(null);
   const { width, height, dimensionsReady } = useDimensions(stageContainerRef);
-  const dragStartPos = useRef<{ x: number; y: number } | null>(null);
-  const stageStartPos = useRef<{ x: number; y: number } | null>(null);
 
-  const getRelativePointerPosition = (stage: any) => {
-    const transform = stage.getAbsoluteTransform().copy();
+  useEffect(() => {
+    socket.on('drawing', (data) => {
+      setLines((prevLines) => [...prevLines, data]);
+    });
+
+    return () => {
+      socket.off('drawing');
+    };
+  }, []);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getRelativePointerPosition = (node: any) => {
+    const transform = node.getAbsoluteTransform().copy();
     transform.invert();
-    const pos = stage.getPointerPosition();
+    const pos = node.getStage().getPointerPosition();
     return transform.point(pos);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleMouseDown = (e: any) => {
     if (tool === "pencil") {
       isDrawing.current = true;
       const pos = getRelativePointerPosition(e.target.getStage());
-      setLines((prevLines) => [
-        ...prevLines,
-        { points: [pos.x, pos.y], color, brushRadius, brushOpacity },
-      ]);
+      const newLine = { points: [pos.x, pos.y], color, brushRadius, brushOpacity };
+      setLines((prevLines) => [...prevLines, newLine]);
+      socket.emit('drawing', newLine);
     } else if (tool === "hand") {
-      dragStartPos.current = { x: e.evt.clientX, y: e.evt.clientY };
-      stageStartPos.current = { x: stageRef.current.x(), y: stageRef.current.y() };
+      dragStartPos.current = getRelativePointerPosition(e.target.getStage());
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleMouseMove = (e: any) => {
     if (tool === "pencil" && isDrawing.current) {
       const stage = e.target.getStage();
@@ -125,43 +143,41 @@ const HomePage = () => {
         const lastLine = prevLines[prevLines.length - 1];
         lastLine.points = lastLine.points.concat([point.x, point.y]);
         const newLines = prevLines.slice(0, prevLines.length - 1);
+        socket.emit('drawing', lastLine);
         return [...newLines, lastLine];
       });
     } else if (tool === "hand" && dragStartPos.current) {
-      const dx = e.evt.clientX - dragStartPos.current.x;
-      const dy = e.evt.clientY - dragStartPos.current.y;
-      stageRef.current.position({
-        x: stageStartPos.current.x + dx,
-        y: stageStartPos.current.y + dy,
-      });
-      stageRef.current.batchDraw();
+      const stage = e.target.getStage();
+      const newPos = getRelativePointerPosition(stage);
+      // @ts-expect-error todo
+      const dx = newPos.x - dragStartPos.current.x;
+      // @ts-expect-error todo
+      const dy = newPos.y - dragStartPos.current.y;
+      stage.x(stage.x() + dx);
+      stage.y(stage.y() + dy);
+      dragStartPos.current = newPos;
     }
   };
 
   const handleMouseUp = () => {
     isDrawing.current = false;
     dragStartPos.current = null;
-    stageStartPos.current = null;
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleWheel = (e: any) => {
     e.evt.preventDefault();
-    const scaleBy = 1.05;
-    const stage = stageRef.current;
+    const stage = stageRef.current as unknown as Konva.Stage;
+    if (!stage) return;
     const oldScale = stage.scaleX();
     const pointer = stage.getPointerPosition();
-
+    if (!pointer) return;
     const mousePointTo = {
       x: (pointer.x - stage.x()) / oldScale,
       y: (pointer.y - stage.y()) / oldScale,
     };
-
-    const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
-    if (newScale < 0.1 || newScale > 30) return; // Limit zoom scale
-
-    setScale(newScale);
+    const newScale = e.evt.deltaY > 0 ? oldScale * 1.1 : oldScale / 1.1;
     stage.scale({ x: newScale, y: newScale });
-
     const newPos = {
       x: pointer.x - mousePointTo.x * newScale,
       y: pointer.y - mousePointTo.y * newScale,
@@ -173,8 +189,10 @@ const HomePage = () => {
   const handleZoomIn = () => {
     setScale((prevScale) => {
       const newScale = Math.min(prevScale * 1.1, 30);
-      const stage = stageRef.current;
+      const stage = stageRef.current as unknown as Konva.Stage;
       const pointer = stage.getPointerPosition();
+
+      if (!pointer) return prevScale;
 
       const mousePointTo = {
         x: (pointer.x - stage.x()) / prevScale,
@@ -197,8 +215,10 @@ const HomePage = () => {
   const handleZoomOut = () => {
     setScale((prevScale) => {
       const newScale = Math.max(prevScale / 1.1, 0.1);
-      const stage = stageRef.current;
+      const stage = stageRef.current as unknown as Konva.Stage;
       const pointer = stage.getPointerPosition();
+
+      if (!pointer) return prevScale;
 
       const mousePointTo = {
         x: (pointer.x - stage.x()) / prevScale,
