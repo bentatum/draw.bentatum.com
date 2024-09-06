@@ -7,9 +7,9 @@ import clsx from "clsx";
 import { PencilIcon, HandRaisedIcon } from "@heroicons/react/24/outline";
 import io from "socket.io-client";
 import Konva from "konva";
-import { API_URL } from "@/config";
+import { WS_URL } from "@/config";
 
-const socket = io(API_URL!);
+const socket = io(WS_URL!);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ControlButton: React.FC<any> = ({ onClick, selected, children, className, ...props }) => {
