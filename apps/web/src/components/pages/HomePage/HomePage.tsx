@@ -9,7 +9,7 @@ import io from "socket.io-client";
 import Konva from "konva";
 import { API_URL } from "@/config";
 
-const socket = io(API_URL);
+const socket = io(API_URL!);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ControlButton: React.FC<any> = ({ onClick, selected, children, className, ...props }) => {
