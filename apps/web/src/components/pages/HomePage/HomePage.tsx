@@ -1,18 +1,21 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { Stage, Layer, Line } from "react-konva";
 import useDimensions from "@/lib/useDimensions";
 import clsx from "clsx";
 import { PencilIcon, HandRaisedIcon } from "@heroicons/react/24/outline";
-import io from "socket.io-client";
 import Konva from "konva";
-import { WS_URL } from "@/config";
+import useAbly from "@/lib/useAbly";
 
-const socket = io(WS_URL!);
+interface ControlButtonProps {
+  onClick?: () => void;
+  selected?: boolean;
+  children?: React.ReactNode;
+  className?: string;
+}
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ControlButton: React.FC<any> = ({ onClick, selected, children, className, ...props }) => {
+const ControlButton: React.FC<ControlButtonProps> = ({ onClick, selected, children, className, ...props }) => {
   return (
     <button
       className={clsx(
@@ -30,8 +33,12 @@ const ControlButton: React.FC<any> = ({ onClick, selected, children, className, 
   );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const StrokeWidthButtons: React.FC<any> = ({ setBrushRadius, brushRadius }) => {
+interface StrokeWidthButtonsProps {
+  setBrushRadius: (radius: number) => void;
+  brushRadius: number;
+}
+
+const StrokeWidthButtons: React.FC<StrokeWidthButtonsProps> = ({ setBrushRadius, brushRadius }) => {
   const strokeWidths = [2, 8, 15];
   return (
     <div className="flex items-center gap-1.5 mt-1">
@@ -52,8 +59,12 @@ const StrokeWidthButtons: React.FC<any> = ({ setBrushRadius, brushRadius }) => {
   );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ColorPicker: React.FC<any> = ({ setColor, color }) => {
+interface ColorPickerProps {
+  setColor: (color: string) => void;
+  color: string;
+}
+
+const ColorPicker: React.FC<ColorPickerProps> = ({ setColor, color }) => {
   const presetColors = [
     { name: "black", hex: "#000000" },
     { name: "red", hex: "#EF4444" },
@@ -90,85 +101,92 @@ const ColorPicker: React.FC<any> = ({ setColor, color }) => {
   );
 };
 
+interface LineData {
+  points: number[];
+  color: string;
+  brushRadius: number;
+  brushOpacity: number;
+  connectionId: string | null;
+}
+
 const HomePage = () => {
   const [color, setColor] = useState("#000000");
   const [brushRadius, setBrushRadius] = useState(4);
   const [brushOpacity, setBrushOpacity] = useState(1);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [lines, setLines] = useState<any[]>([]);
+  const [lines, setLines] = useState<LineData[]>([]);
   const [scale, setScale] = useState(1);
   const [tool, setTool] = useState("pencil");
   const isDrawing = useRef(false);
-  const stageRef = useRef(null);
-  const stageContainerRef = useRef(null);
-  const dragStartPos = useRef(null);
+  const stageRef = useRef<Konva.Stage | null>(null);
+  const stageContainerRef = useRef<HTMLDivElement | null>(null);
+  const dragStartPos = useRef<{ x: number; y: number } | null>(null);
   const { width, height, dimensionsReady } = useDimensions(stageContainerRef);
 
-  useEffect(() => {
-    socket.on('drawing', (data) => {
-      setLines((prevLines) => [...prevLines, data]);
-    });
-
-    return () => {
-      socket.off('drawing');
-    };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleIncomingMessage = useCallback((newLine: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setLines((prevLines: any[]) => [...prevLines, newLine]);
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const getRelativePointerPosition = (node: any) => {
+  const { channel, connectionId } = useAbly(handleIncomingMessage);
+
+  const getRelativePointerPosition = (node: Konva.Node) => {
     const transform = node.getAbsoluteTransform().copy();
     transform.invert();
-    const pos = node.getStage().getPointerPosition();
-    return transform.point(pos);
+    const pos = node.getStage()?.getPointerPosition();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return transform.point(pos as any);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleMouseDown = (e: any) => {
+  const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
     if (tool === "pencil") {
       isDrawing.current = true;
-      const pos = getRelativePointerPosition(e.target.getStage());
-      const newLine = { points: [pos.x, pos.y], color, brushRadius, brushOpacity };
+      const pos = getRelativePointerPosition(stage);
+      const newLine: LineData = { points: [pos.x, pos.y], color, brushRadius, brushOpacity, connectionId };
       setLines((prevLines) => [...prevLines, newLine]);
-      socket.emit('drawing', newLine);
+      if (channel) {
+        channel.publish('drawing', newLine);
+      }
     } else if (tool === "hand") {
-      dragStartPos.current = getRelativePointerPosition(e.target.getStage());
+      dragStartPos.current = getRelativePointerPosition(stage);
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleMouseMove = (e: any) => {
+  const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
     if (tool === "pencil" && isDrawing.current) {
-      const stage = e.target.getStage();
       const point = getRelativePointerPosition(stage);
       setLines((prevLines) => {
         const lastLine = prevLines[prevLines.length - 1];
+        if (!lastLine) return prevLines;
         lastLine.points = lastLine.points.concat([point.x, point.y]);
         const newLines = prevLines.slice(0, prevLines.length - 1);
-        socket.emit('drawing', lastLine);
+        if (channel) {
+          channel.publish('drawing', lastLine);
+        }
         return [...newLines, lastLine];
       });
     } else if (tool === "hand" && dragStartPos.current) {
-      const stage = e.target.getStage();
       const newPos = getRelativePointerPosition(stage);
-      // @ts-expect-error todo
       const dx = newPos.x - dragStartPos.current.x;
-      // @ts-expect-error todo
       const dy = newPos.y - dragStartPos.current.y;
       stage.x(stage.x() + dx);
       stage.y(stage.y() + dy);
       dragStartPos.current = newPos;
     }
-  };
+  }
 
   const handleMouseUp = () => {
     isDrawing.current = false;
     dragStartPos.current = null;
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleWheel = (e: any) => {
+  const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
-    const stage = stageRef.current as unknown as Konva.Stage;
+    const stage = stageRef.current;
     if (!stage) return;
     const oldScale = stage.scaleX();
     const pointer = stage.getPointerPosition();
@@ -190,7 +208,8 @@ const HomePage = () => {
   const handleZoomIn = () => {
     setScale((prevScale) => {
       const newScale = Math.min(prevScale * 1.1, 30);
-      const stage = stageRef.current as unknown as Konva.Stage;
+      const stage = stageRef.current;
+      if (!stage) return prevScale;
       const pointer = stage.getPointerPosition();
 
       if (!pointer) return prevScale;
@@ -216,7 +235,8 @@ const HomePage = () => {
   const handleZoomOut = () => {
     setScale((prevScale) => {
       const newScale = Math.max(prevScale / 1.1, 0.1);
-      const stage = stageRef.current as unknown as Konva.Stage;
+      const stage = stageRef.current;
+      if (!stage) return prevScale;
       const pointer = stage.getPointerPosition();
 
       if (!pointer) return prevScale;
