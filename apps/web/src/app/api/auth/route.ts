@@ -4,10 +4,6 @@ import Ably from 'ably';
 const ablyApiKey = process.env.ABLY_API_KEY;
 const ablyClientId = process.env.ABLY_CLIENT_ID;
 
-if (!ablyApiKey || !ablyClientId) {
-  console.error('ABLY_API_KEY or ABLY_CLIENT_ID is not set');
-}
-
 const ably = new Ably.Realtime({ key: ablyApiKey });
 
 export async function GET() {
