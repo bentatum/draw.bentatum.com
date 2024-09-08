@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import Ably from 'ably';
 
-const ablyApiKey = process.env.ABLY_API_KEY;
-const ablyClientId = process.env.ABLY_CLIENT_ID;
+const ablyApiKey = process.env.NEXT_PUBLIC_ABLY_API_KEY;
+const ablyClientId = process.env.NEXT_PUBLIC_ABLY_CLIENT_ID;
+
+console.log('ABLY_API_KEY:', ablyApiKey);
+console.log('ABLY_CLIENT_ID:', ablyClientId);
 
 const ably = new Ably.Realtime({ key: ablyApiKey });
 
