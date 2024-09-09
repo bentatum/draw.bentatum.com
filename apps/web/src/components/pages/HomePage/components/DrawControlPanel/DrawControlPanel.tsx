@@ -4,7 +4,6 @@ import StrokeWidthButtons from "./components/StrokeWidthButtons";
 import { Bars2Icon } from "@heroicons/react/20/solid";
 import ControlButton from "@/components/ControlButton";
 import useMediaQuery from "@/lib/useMediaQuery";
-import clsx from "clsx";
 
 export interface DrawControlPanelProps {
   setColor: (color: string) => void;
