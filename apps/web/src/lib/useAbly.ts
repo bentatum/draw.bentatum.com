@@ -1,12 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Ably, { Message, RealtimeChannel } from 'ably';
 import useAblyTokenQuery from './useAblyTokenQuery';
 
 const useAbly = (onMessage: (message: Message) => void) => {
-  const [connectionId, setConnectionId] = useState<string | null>(null);
+  const [clientId, setClientId] = useState<string | null>(null);
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const { data: token } = useAblyTokenQuery();
-  const connectionIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const initializeAbly = async () => {
@@ -19,13 +18,13 @@ const useAbly = (onMessage: (message: Message) => void) => {
         setChannel(drawingChannel);
 
         ably.connection.on('connected', () => {
-          const id = ably.connection.id;
-          setConnectionId(id || null);
-          connectionIdRef.current = id || null;
+          // Use clientId if provided by the server, otherwise fall back to connectionId
+          const id = ably.auth.clientId || ably.connection.id;
+          setClientId(id);
         });
 
         drawingChannel.subscribe('drawing', (message: Message) => {
-          if (message.connectionId !== connectionIdRef.current) {
+          if (message.connectionId !== ably.connection.id) {
             onMessage(message.data);
           }
         });
@@ -43,7 +42,7 @@ const useAbly = (onMessage: (message: Message) => void) => {
     }
   }, [token, onMessage]);
 
-  return { connectionId, channel };
+  return { clientId, channel };
 };
 
 export default useAbly;
