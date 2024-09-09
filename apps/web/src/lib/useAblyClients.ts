@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { RealtimeChannel } from 'ably';
+import { PresenceMessage, RealtimeChannel } from 'ably';
 import useSWR from 'swr';
 
 export function useAblyClients(channel: RealtimeChannel) {
@@ -27,11 +27,11 @@ export function useAblyClients(channel: RealtimeChannel) {
 
   useEffect(() => {
     if (channel) {
-      const handleEnter = (member) => {
+      const handleEnter = (member: PresenceMessage) => {
         setClients((prevClients) => [...prevClients, member.connectionId]);
       };
 
-      const handleLeave = (member) => {
+      const handleLeave = (member: PresenceMessage) => {
         setClients((prevClients) => prevClients.filter(id => id !== member.connectionId));
       };
 

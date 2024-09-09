@@ -20,7 +20,9 @@ const useAbly = (onMessage: (message: Message) => void) => {
         ably.connection.on('connected', () => {
           // Use clientId if provided by the server, otherwise fall back to connectionId
           const id = ably.auth.clientId || ably.connection.id;
-          setClientId(id);
+          if (id) {
+            setClientId(id);
+          }
         });
 
         drawingChannel.subscribe('drawing', (message: Message) => {
