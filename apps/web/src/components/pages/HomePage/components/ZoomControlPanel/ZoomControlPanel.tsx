@@ -3,16 +3,15 @@ import Konva from "konva";
 import { FC } from "react";
 
 export interface ZoomControlPanelProps {
-  setScale: (scale: number) => void;
+  setScale: React.Dispatch<React.SetStateAction<number>>;
   scale: number;
   stageRef: React.RefObject<Konva.Stage>;
 }
 
 const ZoomControlPanel: FC<ZoomControlPanelProps> = ({ setScale, scale, stageRef }) => {
-  const handleZoomIn = () => {
-    // @ts-expect-error todo
+  const handleZoom = (zoomIn: boolean) => {
     setScale((prevScale: number) => {
-      const newScale = Math.min(prevScale * 1.1, 30);
+      const newScale = zoomIn ? Math.min(prevScale * 1.1, 30) : Math.max(prevScale / 1.1, 0.1);
       const stage = stageRef.current;
       if (!stage) return prevScale;
       const pointer = stage.getPointerPosition();
@@ -37,33 +36,9 @@ const ZoomControlPanel: FC<ZoomControlPanelProps> = ({ setScale, scale, stageRef
     });
   };
 
-  const handleZoomOut = () => {
-    // @ts-expect-error todo
-    setScale((prevScale) => {
-      const newScale = Math.max(prevScale / 1.1, 0.1);
-      const stage = stageRef.current;
-      if (!stage) return prevScale;
-      const pointer = stage.getPointerPosition();
+  const handleZoomIn = () => handleZoom(true);
+  const handleZoomOut = () => handleZoom(false);
 
-      if (!pointer) return prevScale;
-
-      const mousePointTo = {
-        x: (pointer.x - stage.x()) / prevScale,
-        y: (pointer.y - stage.y()) / prevScale,
-      };
-
-      stage.scale({ x: newScale, y: newScale });
-
-      const newPos = {
-        x: pointer.x - mousePointTo.x * newScale,
-        y: pointer.y - mousePointTo.y * newScale,
-      };
-      stage.position(newPos);
-      stage.batchDraw();
-
-      return newScale;
-    });
-  };
   return (
     <div className="z-10 fixed bottom-4 left-4 bg-white p-2 rounded shadow flex items-center">
       <ControlButton onClick={handleZoomOut}>-</ControlButton>
