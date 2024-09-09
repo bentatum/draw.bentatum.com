@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useCallback } from "react";
-import { Stage, Layer, Line } from "react-konva";
+import { Stage, Layer, Line, Circle } from "react-konva";
 import useDimensions from "@/lib/useDimensions";
 import clsx from "clsx";
 import Konva from "konva";
-import useAbly from "@/lib/useAbly";
+import useAblyChannel from "@/lib/useAblyChannel";
 import DrawControlPanel from "./components/DrawControlPanel/DrawControlPanel";
 import ZoomControlPanel from "./components/ZoomControlPanel";
 import { LineData } from "@/types";
@@ -24,14 +24,39 @@ const HomePage = () => {
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
   const dragStartPos = useRef<{ x: number; y: number } | null>(null);
   const { width, height, dimensionsReady } = useDimensions(stageContainerRef);
+  const [collaboratorMousePositions, setCollaboratorMousePositions] = useState<{ [key: string]: { x: number; y: number } }>({});
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleIncomingMessage = useCallback((newLine: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setLines((prevLines: any[]) => [...prevLines, newLine]);
+  const handleDrawingMessage = useCallback((message: any) => {
+    setLines((prevLines) => [...prevLines, message.data]);
   }, []);
 
-  const { channel } = useAbly(handleIncomingMessage);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleMouseMessage = useCallback((message: any) => {
+    setCollaboratorMousePositions((prevPositions) => ({
+      ...prevPositions,
+      [message.data.clientId]: { x: message.data.x, y: message.data.y },
+    }));
+  }, []);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleIncomingMessage = useCallback((message: any) => {
+    if (message.name === 'drawing') {
+      handleDrawingMessage(message);
+    } else if (message.name === 'mouse') {
+      handleMouseMessage(message);
+    }
+  }, [handleDrawingMessage, handleMouseMessage]);
+
+  const { channel: drawingChannel } = useAblyChannel('drawing', handleIncomingMessage);
+  const { channel: mouseChannel } = useAblyChannel('mouse', handleIncomingMessage);
+
+  const throttledPublishMouse = useCallback((point: { x: number; y: number }) => {
+    if (mouseChannel) {
+      console.log('publishing mouse', point);
+      mouseChannel.publish('mouse', { x: point.x, y: point.y });
+    }
+  }, [mouseChannel]); // Adjust the throttle delay as needed
 
   const getRelativePointerPosition = (node: Konva.Node) => {
     const transform = node.getAbsoluteTransform().copy();
@@ -49,8 +74,8 @@ const HomePage = () => {
       const pos = getRelativePointerPosition(stage);
       const newLine: LineData = { points: [pos.x, pos.y], color, brushRadius, brushOpacity };
       setLines((prevLines) => [...prevLines, newLine]);
-      if (channel) {
-        channel.publish('drawing', newLine);
+      if (drawingChannel) {
+        drawingChannel.publish('drawing', newLine);
       }
     } else if (tool === "hand") {
       dragStartPos.current = getRelativePointerPosition(stage);
@@ -60,15 +85,15 @@ const HomePage = () => {
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
     const stage = e.target.getStage();
     if (!stage) return;
+    const point = getRelativePointerPosition(stage);
     if (tool === "pencil" && isDrawing.current) {
-      const point = getRelativePointerPosition(stage);
       setLines((prevLines) => {
         const lastLine = prevLines[prevLines.length - 1];
         if (!lastLine) return prevLines;
         lastLine.points = lastLine.points.concat([point.x, point.y]);
         const newLines = prevLines.slice(0, prevLines.length - 1);
-        if (channel) {
-          channel.publish('drawing', lastLine);
+        if (drawingChannel) {
+          drawingChannel.publish('drawing', lastLine);
         }
         return [...newLines, lastLine];
       });
@@ -80,7 +105,8 @@ const HomePage = () => {
       stage.y(stage.y() + dy);
       dragStartPos.current = newPos;
     }
-  }
+    throttledPublishMouse(point);
+  };
 
   const handleMouseUp = () => {
     isDrawing.current = false;
@@ -113,7 +139,7 @@ const HomePage = () => {
       <ToolSelectPanel setTool={setTool} tool={tool} />
       <DrawControlPanel setColor={setColor} color={color} setBrushRadius={setBrushRadius} brushRadius={brushRadius} setBrushOpacity={setBrushOpacity} brushOpacity={brushOpacity} />
       <ZoomControlPanel setScale={setScale} scale={scale} stageRef={stageRef} />
-      {channel && <CollaboratorsViewPanel channel={channel} />}
+      {drawingChannel && <CollaboratorsViewPanel channel={drawingChannel} />}
       <div
         className={clsx("h-screen w-screen", {
           "cursor-crosshair": tool === "pencil",
@@ -146,11 +172,19 @@ const HomePage = () => {
                   globalCompositeOperation="source-over"
                 />
               ))}
+              {Object.entries(collaboratorMousePositions).map(([clientId, pos]) => (
+                <Circle
+                  key={clientId}
+                  x={pos.x}
+                  y={pos.y}
+                  radius={5}
+                  fill="red"
+                />
+              ))}
             </Layer>
           </Stage>
         )}
       </div>
-      
     </div>
   );
 };

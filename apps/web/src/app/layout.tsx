@@ -14,8 +14,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Vibe Canvas",
-  description: "A demonstration by Ben Tatum",
+  title: "Draw",
+  description: "A demonstration of a collaborative canvas by Ben Tatum",
 };
 
 export default function RootLayout({
