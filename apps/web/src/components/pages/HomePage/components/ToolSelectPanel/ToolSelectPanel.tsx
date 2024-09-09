@@ -9,7 +9,7 @@ export interface ToolSelectPanelProps {
 
 const ToolSelectPanel: FC<ToolSelectPanelProps> = ({ setTool, tool }) => {
   return (
-    <div className="z-10 fixed top-4 left-1/2 transform -translate-x-1/2 bg-white p-2 rounded shadow flex items-center gap-2">
+    <div className="z-10 fixed bottom-4 right-4 bg-white p-2 rounded shadow flex items-center gap-2">
       <ControlButton onClick={() => setTool("pencil")} selected={tool === "pencil"}>
         <PencilIcon className="w-5 h-5" />
       </ControlButton>

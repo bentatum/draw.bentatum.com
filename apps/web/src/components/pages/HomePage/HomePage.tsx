@@ -53,7 +53,6 @@ const HomePage = () => {
 
   const throttledPublishMouse = useCallback((point: { x: number; y: number }) => {
     if (mouseChannel) {
-      console.log('publishing mouse', point);
       mouseChannel.publish('mouse', { x: point.x, y: point.y });
     }
   }, [mouseChannel]); // Adjust the throttle delay as needed
