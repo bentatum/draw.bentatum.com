@@ -26,7 +26,7 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrush
           <Bars2Icon className="w-5 h-5" />
         </ControlButton>
       </div>
-      {!isCollapsed && (
+      {(!isMobile || !isCollapsed) && (
         <div className={clsx("bg-white p-3 rounded-lg shadow flex flex-col gap-3 border border-gray-50", { "mt-2": isMobile })}>
           <div>
             <label className="text-sm">Stroke</label>
