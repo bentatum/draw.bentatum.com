@@ -131,6 +131,7 @@ const HomePage = () => {
     };
     stage.position(newPos);
     stage.batchDraw();
+    setScale(newScale);
   };
 
   const handleTouchStart = (e: Konva.KonvaEventObject<TouchEvent>) => {
