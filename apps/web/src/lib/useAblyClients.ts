@@ -2,13 +2,13 @@ import { useState, useCallback, useEffect } from 'react';
 import { PresenceMessage, RealtimeChannel } from 'ably';
 import useSWR from 'swr';
 
-export function useAblyClients(channel: RealtimeChannel) {
+export function useAblyClients(channel: RealtimeChannel | null) {
   const [clients, setClients] = useState<string[]>([]);
 
   const fetchClients = useCallback(async () => {
     try {
-      const members = await channel.presence.get();
-      return members.map(member => member.connectionId);
+      const members = await channel?.presence.get();
+      return members?.map(member => member.connectionId);
     } catch (err) {
       console.error('Error fetching presence members:', err);
       return [];

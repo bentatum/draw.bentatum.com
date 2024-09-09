@@ -133,12 +133,59 @@ const HomePage = () => {
     stage.batchDraw();
   };
 
+  const handleTouchStart = (e: Konva.KonvaEventObject<TouchEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
+    if (tool === "pencil") {
+      isDrawing.current = true;
+      const pos = getRelativePointerPosition(stage);
+      const newLine: LineData = { points: [pos.x, pos.y], color, brushRadius, brushOpacity };
+      setLines((prevLines) => [...prevLines, newLine]);
+      if (drawingChannel) {
+        drawingChannel.publish('drawing', newLine);
+      }
+    } else if (tool === "hand") {
+      dragStartPos.current = getRelativePointerPosition(stage);
+    }
+  };
+
+  const handleTouchMove = (e: Konva.KonvaEventObject<TouchEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
+    const point = getRelativePointerPosition(stage);
+    if (tool === "pencil" && isDrawing.current) {
+      setLines((prevLines) => {
+        const lastLine = prevLines[prevLines.length - 1];
+        if (!lastLine) return prevLines;
+        lastLine.points = lastLine.points.concat([point.x, point.y]);
+        const newLines = prevLines.slice(0, prevLines.length - 1);
+        if (drawingChannel) {
+          drawingChannel.publish('drawing', lastLine);
+        }
+        return [...newLines, lastLine];
+      });
+    } else if (tool === "hand" && dragStartPos.current) {
+      const newPos = getRelativePointerPosition(stage);
+      const dx = newPos.x - dragStartPos.current.x;
+      const dy = newPos.y - dragStartPos.current.y;
+      stage.x(stage.x() + dx);
+      stage.y(stage.y() + dy);
+      dragStartPos.current = newPos;
+    }
+    throttledPublishMouse(point);
+  };
+
+  const handleTouchEnd = () => {
+    isDrawing.current = false;
+    dragStartPos.current = null;
+  };
+
   return (
     <div>
       <ToolSelectPanel setTool={setTool} tool={tool} />
       <DrawControlPanel setColor={setColor} color={color} setBrushRadius={setBrushRadius} brushRadius={brushRadius} setBrushOpacity={setBrushOpacity} brushOpacity={brushOpacity} />
       <ZoomControlPanel setScale={setScale} scale={scale} stageRef={stageRef} />
-      {drawingChannel && <CollaboratorsViewPanel channel={drawingChannel} />}
+      <CollaboratorsViewPanel channel={drawingChannel} />
       <div
         className={clsx("h-screen w-screen", {
           "cursor-crosshair": tool === "pencil",
@@ -154,6 +201,9 @@ const HomePage = () => {
             onMouseDown={handleMouseDown}
             onMousemove={handleMouseMove}
             onMouseup={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             onWheel={handleWheel}
             scaleX={scale}
             scaleY={scale}

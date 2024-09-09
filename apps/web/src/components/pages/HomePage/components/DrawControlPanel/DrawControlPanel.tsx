@@ -21,13 +21,13 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrush
 
   return (
     <div className="z-10 fixed top-4 left-4">
-      <div className="md:hidden">
+      <div className="md:hidden mb-2">
         <ControlButton onClick={() => setIsCollapsed(!isCollapsed)}>
           <Bars2Icon className="w-5 h-5" />
         </ControlButton>
       </div>
       {(!isMobile || !isCollapsed) && (
-        <div className={clsx("bg-white p-3 rounded-lg shadow flex flex-col gap-3 border border-gray-50", { "mt-2": isMobile })}>
+        <div className="bg-white p-3 rounded-lg shadow flex flex-col gap-3 border border-gray-50">
           <div>
             <label className="text-sm">Stroke</label>
             <ColorPicker setColor={setColor} color={color} />

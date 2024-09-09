@@ -3,7 +3,7 @@ import { useAblyClients } from "@/lib/useAblyClients";
 import { useMemo } from "react";
 
 export interface CollaboratorsViewPanelProps {
-  channel: RealtimeChannel;
+  channel: RealtimeChannel | null;
 }
 
 const CollaboratorsViewPanel: React.FC<CollaboratorsViewPanelProps> = ({ channel }) => {
@@ -17,13 +17,13 @@ const CollaboratorsViewPanel: React.FC<CollaboratorsViewPanelProps> = ({ channel
   }, []);
 
   return (
-    <div className="fixed top-4 right-4 p-4 flex flex-row -space-x-2">
+    <div className="h-7 fixed top-4 right-4 flex flex-row -space-x-2">
       {clients.map((client) => {
         const { hue, pattern } = generateAvatar(client);
         return (
           <div
             key={client}
-            className="w-8 h-8 rounded-full relative overflow-hidden border border-white"
+            className="w-7 h-7 rounded-full relative overflow-hidden border border-white"
             title={client}
           >
             <div
