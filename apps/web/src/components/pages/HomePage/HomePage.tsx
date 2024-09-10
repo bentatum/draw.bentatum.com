@@ -87,17 +87,16 @@ const HomePage = () => {
     } else if (tool === "hand" && dragStartPos.current) {
       const newPos = getRelativePointerPosition(stage);
       if (lastPosRef.current) {
-        const dx = (newPos.x - lastPosRef.current.x) / scale;
-        const dy = (newPos.y - lastPosRef.current.y) / scale;
+        const dx = (newPos.x - lastPosRef.current.x);
+        const dy = (newPos.y - lastPosRef.current.y);
         requestAnimationFrame(() => {
-          stage.x(stage.x() + dx);
-          stage.y(stage.y() + dy);
+          stage.x(stage.x() + dx * scale);
+          stage.y(stage.y() + dy * scale);
           stage.batchDraw();
         });
       }
       lastPosRef.current = newPos;
     }
-    // publishMouse(point);
   };
 
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => handleMove(e, tool);
