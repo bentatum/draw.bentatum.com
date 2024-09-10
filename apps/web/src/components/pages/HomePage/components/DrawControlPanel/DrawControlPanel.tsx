@@ -4,6 +4,7 @@ import StrokeWidthButtons from "./components/StrokeWidthButtons";
 import { Bars2Icon } from "@heroicons/react/20/solid";
 import ControlButton from "@/components/ControlButton";
 import useMediaQuery from "@/lib/useMediaQuery";
+import GithubIcon from "@/components/icons/GithubIcon";
 
 export interface DrawControlPanelProps {
   setColor: (color: string) => void;
@@ -50,6 +51,9 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrush
                 onChange={(e) => setBrushOpacity(parseFloat(e.target.value))}
               />
             </div>
+          </div>
+          <div className="mt-1.5 border-t border-gray-300 pt-3.5">
+            <p className="text-xs text-gray-400">Made by Ben Tatum. <a href="https://github.com/bentatum/draw.bentatum.com" className="text-blue-500"><span className="inline-flex items-center gap-1">Github <GithubIcon className="w-3 h-3 inline-block" /></span></a></p>
           </div>
         </div>
       )}

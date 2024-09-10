@@ -6,15 +6,16 @@ export interface StrokeWidthButtonsProps {
   brushRadius: number;
 }
 
-const strokeWidths = [2, 8, 15];
+const strokeWidths = [4, 8, 15];
 
 const StrokeWidthButtons: React.FC<StrokeWidthButtonsProps> = ({ setBrushRadius, brushRadius }) => {
+  console.log(brushRadius, strokeWidths[0]);
   return (
     <div className="flex items-center gap-1.5 mt-1">
       {strokeWidths.map((width, index) => (
         <ControlButton
           key={width}
-          selected={brushRadius === width}
+          selected={!brushRadius || brushRadius === width}
           onClick={() => setBrushRadius(width)}
         >
           <div className={clsx("w-full rounded-full bg-black", {

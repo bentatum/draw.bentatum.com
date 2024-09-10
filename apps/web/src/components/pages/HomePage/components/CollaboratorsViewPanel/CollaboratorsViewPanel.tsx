@@ -16,29 +16,34 @@ const CollaboratorsViewPanel: React.FC<CollaboratorsViewPanelProps> = ({ channel
     return { hue, pattern };
   }, []);
 
+  if (!clients.length) return null;
+
   return (
-    <div className="h-7 fixed top-4 right-4 flex flex-row -space-x-2">
-      {clients.map((client) => {
-        const { hue, pattern } = generateAvatar(client);
-        return (
-          <div
-            key={client}
-            className="w-7 h-7 rounded-full relative overflow-hidden border border-white"
-            title={client}
-          >
+    <div className="h-7 fixed top-4 right-4 flex flex-row items-center gap-2">
+      <span className="text-sm text-gray-500">{clients.length} people online</span>
+      <div className="flex -space-x-2">
+        {clients.map((client) => {
+          const { hue, pattern } = generateAvatar(client);
+          return (
             <div
-              className="w-full h-full"
-              style={{
-                backgroundColor: `hsl(${hue}, 70%, 60%)`,
-                backgroundImage: `radial-gradient(circle at ${pattern % 2 ? '25%' : '75%'} ${
-                  pattern < 2 ? '25%' : '75%'
-                }, transparent 0, transparent 50%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.3) 100%)`,
-                backgroundSize: '8px 8px',
-              }}
-            ></div>
-          </div>
-        );
-      })}
+              key={client}
+              className="w-7 h-7 rounded-full relative overflow-hidden border border-white"
+              title={client}
+            >
+              <div
+                className="w-full h-full"
+                style={{
+                  backgroundColor: `hsl(${hue}, 70%, 60%)`,
+                  backgroundImage: `radial-gradient(circle at ${pattern % 2 ? '25%' : '75%'} ${
+                    pattern < 2 ? '25%' : '75%'
+                  }, transparent 0, transparent 50%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.3) 100%)`,
+                  backgroundSize: '8px 8px',
+                }}
+              ></div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
