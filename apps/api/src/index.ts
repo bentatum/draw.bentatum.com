@@ -27,15 +27,23 @@ app.get('/lines', async (req, res) => {
 });
 
 app.post('/lines', async (req, res) => {
-  const { data, error } = await supabase
-    .from('lines')
-    .insert(req.body);
+  try {
+    // @ts-ignore
+    const lines = req.body.map(({ id, ...rest }) => rest); // Exclude id from each line
 
-  if (error) {
-    return res.status(500).json({ error: error.message });
+    const { data, error } = await supabase
+      .from('lines')
+      .insert(lines);
+
+    if (error) {
+      throw error;
+    }
+
+    res.status(201).json(data);
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    res.status(500).json({ error: 'An unexpected error occurred' });
   }
-
-  res.status(201).json(data);
 });
 
 server.listen(PORT, () => {

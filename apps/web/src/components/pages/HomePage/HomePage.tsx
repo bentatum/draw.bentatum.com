@@ -1,17 +1,14 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Stage, Layer, Line } from "react-konva";
 import useDimensions from "@/lib/useDimensions";
 import clsx from "clsx";
 import Konva from "konva";
-import useAblyChannel from "@/lib/useAblyChannel";
 import DrawControlPanel from "./components/DrawControlPanel/DrawControlPanel";
 import ZoomControlPanel from "./components/ZoomControlPanel";
 import { LineData } from "@/types";
 import ToolSelectPanel from "./components/ToolSelectPanel";
-import CollaboratorsViewPanel from "./components/CollaboratorsViewPanel";
-import { publishMessage } from "@/lib/publishMessage";
 import useLines from "@/lib/useLines";
 import fetcher from "@/lib/fetcher";
 
@@ -29,6 +26,7 @@ const HomePage = () => {
   const dragStartPos = useRef<{ x: number; y: number } | null>(null);
   const lastPosRef = useRef<{ x: number; y: number } | null>(null);
   const { width, height, dimensionsReady } = useDimensions(stageContainerRef);
+  const [newLines, setNewLines] = useState<LineData[]>([]);
 
   useEffect(() => {
     if (fetchedLines) {
@@ -38,27 +36,16 @@ const HomePage = () => {
 
   const saveLines = async (lines: LineData[]) => {
     try {
-      const response = await fetcher(`/lines`, {
+      await fetcher(`/lines`, {
         method: 'POST',
         body: JSON.stringify(lines),
       });
-
-      if (!response.ok) {
-        throw new Error('Error saving lines');
-      }
 
       mutate(); // Refresh the lines after saving
     } catch (error) {
       console.error('Error saving lines:', error);
     }
   };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleIncomingMessage = useCallback((message: any) => {
-    setLines((prevLines) => [...prevLines, message.data]);
-  }, []);
-
-  const { channel } = useAblyChannel(handleIncomingMessage);
 
   const getRelativePointerPosition = (node: Konva.Node) => {
     const transform = node.getAbsoluteTransform().copy();
@@ -77,7 +64,7 @@ const HomePage = () => {
       const pos = getRelativePointerPosition(stage);
       const newLine: LineData = { points: [pos.x, pos.y], color, brushRadius, brushOpacity };
       setLines((prevLines) => [...prevLines, newLine]);
-      publishMessage(channel, newLine)
+      setNewLines((prevNewLines) => [...prevNewLines, newLine]);
     } else if (tool === "hand") {
       dragStartPos.current = getRelativePointerPosition(stage);
     }
@@ -96,7 +83,6 @@ const HomePage = () => {
         const point = getRelativePointerPosition(stage);
         lastLine.points = lastLine.points?.concat([point.x, point.y]);
         const newLines = prevLines.slice(0, prevLines.length - 1);
-        publishMessage(channel, lastLine)
         return [...newLines, lastLine];
       });
     } else if (tool === "hand" && dragStartPos.current) {
@@ -119,9 +105,8 @@ const HomePage = () => {
 
   const handleEnd = () => {
     if (isDrawing.current) {
-      const lastLine = lines[lines.length - 1];
-      publishMessage(channel, lastLine);
-      saveLines(lines);
+      saveLines(newLines);
+      setNewLines([]); // Clear new lines after saving
     }
     isDrawing.current = false;
     dragStartPos.current = null;
@@ -158,7 +143,7 @@ const HomePage = () => {
       <ToolSelectPanel setTool={setTool} tool={tool} />
       <DrawControlPanel setColor={setColor} color={color} setBrushRadius={setBrushRadius} brushRadius={brushRadius} setBrushOpacity={setBrushOpacity} brushOpacity={brushOpacity} />
       <ZoomControlPanel setScale={setScale} scale={scale} stageRef={stageRef} />
-      <CollaboratorsViewPanel channel={channel} />
+      {/* <CollaboratorsViewPanel /> */}
       <div
         className={clsx("h-screen w-screen", {
           "cursor-crosshair": tool === "pencil",
@@ -194,10 +179,6 @@ const HomePage = () => {
                   globalCompositeOperation="source-over"
                 />
               ))}
-              {/* {channel && <CollaboratorsCursors
-                stageRef={stageRef}
-                channel={channel}
-              />} */}
             </Layer>
           </Stage>
         )}
