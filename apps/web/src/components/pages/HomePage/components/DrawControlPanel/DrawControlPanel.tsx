@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import ColorPicker from "./components/ColorPicker";
 import StrokeWidthButtons from "./components/StrokeWidthButtons";
-import { Bars2Icon } from "@heroicons/react/20/solid";
+import { Bars2Icon, XMarkIcon } from "@heroicons/react/20/solid";
 import ControlButton from "@/components/ControlButton";
 import useMediaQuery from "@/lib/useMediaQuery";
 import GithubIcon from "@/components/icons/GithubIcon";
@@ -24,7 +24,7 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrush
     <div className="z-10 fixed top-4 left-4">
       <div className="md:hidden mb-2">
         <ControlButton onClick={() => setIsCollapsed(!isCollapsed)}>
-          <Bars2Icon className="w-5 h-5" />
+          {isCollapsed ? <Bars2Icon className="w-5 h-5" /> : <XMarkIcon className="w-5 h-5" />}
         </ControlButton>
       </div>
       {(!isMobile || !isCollapsed) && (
