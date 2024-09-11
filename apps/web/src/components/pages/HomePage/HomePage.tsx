@@ -28,12 +28,53 @@ const HomePage = () => {
   const lastPosRef = useRef<{ x: number; y: number } | null>(null);
   const { width, height, dimensionsReady } = useDimensions(stageContainerRef);
   const [newLines, setNewLines] = useState<LineData[]>([]);
+  const [isStageReady, setIsStageReady] = useState(false);
+
+  const setStageRef = (node: Konva.Stage | null) => {
+    if (node) {
+      stageRef.current = node;
+      setIsStageReady(true);
+    }
+  };
+
+  const loadCanvasState = () => {
+    const savedScale = localStorage.getItem("canvasScale");
+    const savedPosition = localStorage.getItem("canvasPosition");
+
+    if (savedScale && stageRef.current) {
+      const scale = parseFloat(savedScale);
+      stageRef.current.scale({ x: scale, y: scale });
+      setScale(scale);
+    }
+
+    if (savedPosition && stageRef.current) {
+      const position = JSON.parse(savedPosition);
+      stageRef.current.position(position);
+    }
+  };
+
+  const saveCanvasState = (scale: number, position: { x: number; y: number }) => {
+    localStorage.setItem("canvasScale", scale.toString());
+    localStorage.setItem("canvasPosition", JSON.stringify(position));
+  };
 
   useEffect(() => {
     if (fetchedLines) {
       setLines(fetchedLines);
     }
   }, [fetchedLines]);
+
+  useEffect(() => {
+    if (isStageReady) {
+      loadCanvasState();
+    }
+  }, [isStageReady]);
+
+  useEffect(() => {
+    if (isStageReady) {
+      saveCanvasState(scale, stageRef.current?.position() || { x: 0, y: 0 });
+    }
+  }, [scale, isStageReady]);
 
   const saveLines = async (lines: LineData[]) => {
     try {
@@ -95,6 +136,7 @@ const HomePage = () => {
           stage.x(stage.x() + dx * scale);
           stage.y(stage.y() + dy * scale);
           stage.batchDraw();
+          saveCanvasState(scale, stage.position());
         });
       }
       lastPosRef.current = newPos;
@@ -137,6 +179,7 @@ const HomePage = () => {
     stage.position(newPos);
     stage.batchDraw();
     setScale(newScale);
+    saveCanvasState(newScale, newPos);
   };
 
   return (
@@ -154,7 +197,7 @@ const HomePage = () => {
       >
         {dimensionsReady && (
           <Stage
-            ref={stageRef}
+            ref={setStageRef}
             width={width}
             height={height}
             onMouseDown={handleMouseDown}

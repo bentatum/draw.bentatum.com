@@ -5,8 +5,6 @@ import Panel from '@/components/Panel';
 const ConnectedUsersPanel: React.FC = () => {
   const { connections } = useConnections();
 
-  console.log({connections})
-
   return (
     <Panel className="h-12 z-10 fixed top-4 right-4 flex flex-row items-center gap-2">
       <span className="text-sm text-gray-500">{connections?.length === 1 ? '1 person online' : `${connections?.length || 0} people online`}</span>
