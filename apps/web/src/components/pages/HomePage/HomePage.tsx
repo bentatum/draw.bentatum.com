@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Stage, Layer, Line } from "react-konva";
 import useDimensions from "@/lib/useDimensions";
 import clsx from "clsx";
@@ -11,11 +11,12 @@ import ZoomControlPanel from "./components/ZoomControlPanel";
 import { LineData } from "@/types";
 import ToolSelectPanel from "./components/ToolSelectPanel";
 import CollaboratorsViewPanel from "./components/CollaboratorsViewPanel";
-import CollaboratorsCursors from "./components/CollaboratorsCursors";
 import { publishMessage } from "@/lib/publishMessage";
-
+import useLines from "@/lib/useLines";
+import fetcher from "@/lib/fetcher";
 
 const HomePage = () => {
+  const { lines: fetchedLines, mutate } = useLines();
   const [color, setColor] = useState("#000000");
   const [brushRadius, setBrushRadius] = useState(4);
   const [brushOpacity, setBrushOpacity] = useState(1);
@@ -28,6 +29,29 @@ const HomePage = () => {
   const dragStartPos = useRef<{ x: number; y: number } | null>(null);
   const lastPosRef = useRef<{ x: number; y: number } | null>(null);
   const { width, height, dimensionsReady } = useDimensions(stageContainerRef);
+
+  useEffect(() => {
+    if (fetchedLines) {
+      setLines(fetchedLines);
+    }
+  }, [fetchedLines]);
+
+  const saveLines = async (lines: LineData[]) => {
+    try {
+      const response = await fetcher(`/lines`, {
+        method: 'POST',
+        body: JSON.stringify(lines),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error saving lines');
+      }
+
+      mutate(); // Refresh the lines after saving
+    } catch (error) {
+      console.error('Error saving lines:', error);
+    }
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleIncomingMessage = useCallback((message: any) => {
@@ -94,6 +118,11 @@ const HomePage = () => {
   const handleTouchMove = (e: Konva.KonvaEventObject<TouchEvent>) => handleMove(e, tool);
 
   const handleEnd = () => {
+    if (isDrawing.current) {
+      const lastLine = lines[lines.length - 1];
+      publishMessage(channel, lastLine);
+      saveLines(lines);
+    }
     isDrawing.current = false;
     dragStartPos.current = null;
     lastPosRef.current = null;
@@ -165,10 +194,10 @@ const HomePage = () => {
                   globalCompositeOperation="source-over"
                 />
               ))}
-              {channel && <CollaboratorsCursors
+              {/* {channel && <CollaboratorsCursors
                 stageRef={stageRef}
                 channel={channel}
-              />}
+              />} */}
             </Layer>
           </Stage>
         )}

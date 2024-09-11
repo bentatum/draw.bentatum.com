@@ -1,17 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import http from 'http';
-import { Server } from 'socket.io';
-import { PORT, SOCKET_IO_ORIGIN } from './config';
+import { PORT } from './config';
+import { supabase } from './lib/clients/supabase';
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: SOCKET_IO_ORIGIN,
-    methods: ["GET", "POST"]
-  }
-});
 
 app.use(cors());
 app.use(express.json());
@@ -20,16 +14,28 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-io.on('connection', (socket) => {
-  console.log('a user connected', socket.id);
+app.get('/lines', async (req, res) => {
+  const { data, error } = await supabase
+    .from('lines')
+    .select('*');
 
-  socket.on('drawing', (data) => {
-    socket.broadcast.emit('drawing', data);
-  });
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
 
-  socket.on('disconnect', () => {
-    console.log('user disconnected', socket.id);
-  });
+  res.json(data);
+});
+
+app.post('/lines', async (req, res) => {
+  const { data, error } = await supabase
+    .from('lines')
+    .insert(req.body);
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.status(201).json(data);
 });
 
 server.listen(PORT, () => {
