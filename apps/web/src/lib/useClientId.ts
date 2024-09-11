@@ -41,8 +41,41 @@ const useClientId = () => {
       }
     };
 
+    const updateConnectionStatus = async (status: string) => {
+      if (clientId) {
+        try {
+          await fetcher(`/connections/${clientId}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status }),
+          });
+        } catch (error) {
+          console.error('Error updating connection status:', error);
+        }
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        updateConnectionStatus('idle');
+      } else {
+        updateConnectionStatus('active');
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      updateConnectionStatus('offline');
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     initializeClientId();
-  }, []);
+
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [clientId]);
 
   return clientId;
 };

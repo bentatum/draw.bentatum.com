@@ -47,9 +47,15 @@ app.post('/lines', async (req, res) => {
 });
 
 app.get('/connections', async (req, res) => {
-  const { data, error } = await supabase
-    .from('connections')
-    .select('*');
+  const { status } = req.query;
+
+  let query = supabase.from('connections').select('*');
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     return res.status(500).json({ error: error.message });
@@ -93,6 +99,28 @@ app.get('/connections/:id', async (req, res) => {
   }
 
   res.json(data);
+});
+
+// New endpoint to update connection status
+app.put('/connections/:userId/status', async (req, res) => {
+  const { userId } = req.params;
+  const { status } = req.body;
+
+  try {
+    const { data, error } = await supabase
+      .from('connections')
+      .update({ status })
+      .eq('user_id', userId);
+
+    if (error) {
+      throw error;
+    }
+
+    res.status(200).json(data);
+  } catch (error) {
+    console.error('Error updating connection status:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 server.listen(PORT, () => {
