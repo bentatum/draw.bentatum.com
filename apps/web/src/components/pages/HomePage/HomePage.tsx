@@ -11,6 +11,7 @@ import { LineData } from "@/types";
 import ToolSelectPanel from "./components/ToolSelectPanel";
 import useLines from "@/lib/useLines";
 import fetcher from "@/lib/fetcher";
+import ConnectedUsersPanel from "./components/ConnectedUsersPanel";
 
 const HomePage = () => {
   const { lines: fetchedLines, mutate } = useLines();
@@ -143,7 +144,7 @@ const HomePage = () => {
       <ToolSelectPanel setTool={setTool} tool={tool} />
       <DrawControlPanel setColor={setColor} color={color} setBrushRadius={setBrushRadius} brushRadius={brushRadius} setBrushOpacity={setBrushOpacity} brushOpacity={brushOpacity} />
       <ZoomControlPanel setScale={setScale} scale={scale} stageRef={stageRef} />
-      {/* <CollaboratorsViewPanel /> */}
+      <ConnectedUsersPanel />
       <div
         className={clsx("h-screen w-screen", {
           "cursor-crosshair": tool === "pencil",

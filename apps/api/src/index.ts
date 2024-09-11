@@ -46,6 +46,55 @@ app.post('/lines', async (req, res) => {
   }
 });
 
+app.get('/connections', async (req, res) => {
+  const { data, error } = await supabase
+    .from('connections')
+    .select('*');
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+  res.json(data);
+});
+
+app.post('/connections', async (req, res) => {
+  const { user_id } = req.body;
+
+  if (!user_id) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
+
+  const { data, error } = await supabase
+    .from('connections')
+    .insert([{ user_id }]);
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.status(201).json(data);
+});
+
+app.get('/connections/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const { data, error } = await supabase
+    .from('connections')
+    .select('*')
+    .eq('user_id', id)
+    .single();
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  if (!data) {
+    return res.status(404).json({ error: 'Connection not found' });
+  }
+
+  res.json(data);
+});
+
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

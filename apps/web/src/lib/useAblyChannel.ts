@@ -18,7 +18,6 @@ const useAblyChannel = (onMessage?: (message: Message, connectionId: string) => 
     ablyRef.current = ably;
 
     ably.connection.on('connected', () => {
-      console.log('connected', ably.connection.id!);
       setConnectionId(ably.connection.id!);
 
       const ablyChannel = ably.channels.get(CHANNEL_NAME);

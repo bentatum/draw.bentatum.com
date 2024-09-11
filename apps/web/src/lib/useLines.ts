@@ -14,13 +14,9 @@ const useLines = () => {
     const subscription = supabase
       .channel('public:lines')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'lines' }, payload => {
-        console.log('Received INSERT event:', payload);
-        // @ts-ignore
+        // @ts-expect-error todo
         mutate((lines) => [...(lines || []), payload.new], false);
       })
-      .subscribe((status) => {
-        console.log('Subscription status:', status);
-      });
 
     return () => {
       supabase.removeChannel(subscription);
