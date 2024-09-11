@@ -9,7 +9,6 @@ export interface StrokeWidthButtonsProps {
 const strokeWidths = [4, 8, 15];
 
 const StrokeWidthButtons: React.FC<StrokeWidthButtonsProps> = ({ setBrushRadius, brushRadius }) => {
-  console.log(brushRadius, strokeWidths[0]);
   return (
     <div className="flex items-center gap-1.5 mt-1">
       {strokeWidths.map((width, index) => (

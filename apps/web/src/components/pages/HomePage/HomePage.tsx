@@ -12,6 +12,8 @@ import { LineData } from "@/types";
 import ToolSelectPanel from "./components/ToolSelectPanel";
 import CollaboratorsViewPanel from "./components/CollaboratorsViewPanel";
 import CollaboratorsCursors from "./components/CollaboratorsCursors";
+import { publishMessage } from "@/lib/publishMessage";
+
 
 const HomePage = () => {
   const [color, setColor] = useState("#000000");
@@ -28,18 +30,11 @@ const HomePage = () => {
   const { width, height, dimensionsReady } = useDimensions(stageContainerRef);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleDrawingMessage = useCallback((message: any) => {
+  const handleIncomingMessage = useCallback((message: any) => {
     setLines((prevLines) => [...prevLines, message.data]);
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleIncomingMessage = useCallback((message: any) => {
-    if (message.name === 'drawing') {
-      handleDrawingMessage(message);
-    }
-  }, [handleDrawingMessage]);
-
-  const { channel: drawingChannel } = useAblyChannel('drawing', handleIncomingMessage);
+  const { channel } = useAblyChannel(handleIncomingMessage);
 
   const getRelativePointerPosition = (node: Konva.Node) => {
     const transform = node.getAbsoluteTransform().copy();
@@ -58,9 +53,7 @@ const HomePage = () => {
       const pos = getRelativePointerPosition(stage);
       const newLine: LineData = { points: [pos.x, pos.y], color, brushRadius, brushOpacity };
       setLines((prevLines) => [...prevLines, newLine]);
-      if (drawingChannel) {
-        drawingChannel.publish('drawing', newLine);
-      }
+      publishMessage(channel, newLine)
     } else if (tool === "hand") {
       dragStartPos.current = getRelativePointerPosition(stage);
     }
@@ -72,16 +65,14 @@ const HomePage = () => {
   const handleMove = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>, tool: string) => {
     const stage = e.target.getStage();
     if (!stage) return;
-    const point = getRelativePointerPosition(stage);
     if (tool === "pencil" && isDrawing.current) {
       setLines((prevLines) => {
         const lastLine = prevLines[prevLines.length - 1];
         if (!lastLine) return prevLines;
-        lastLine.points = lastLine.points.concat([point.x, point.y]);
+        const point = getRelativePointerPosition(stage);
+        lastLine.points = lastLine.points?.concat([point.x, point.y]);
         const newLines = prevLines.slice(0, prevLines.length - 1);
-        if (drawingChannel) {
-          drawingChannel.publish('drawing', lastLine);
-        }
+        publishMessage(channel, lastLine)
         return [...newLines, lastLine];
       });
     } else if (tool === "hand" && dragStartPos.current) {
@@ -138,7 +129,7 @@ const HomePage = () => {
       <ToolSelectPanel setTool={setTool} tool={tool} />
       <DrawControlPanel setColor={setColor} color={color} setBrushRadius={setBrushRadius} brushRadius={brushRadius} setBrushOpacity={setBrushOpacity} brushOpacity={brushOpacity} />
       <ZoomControlPanel setScale={setScale} scale={scale} stageRef={stageRef} />
-      <CollaboratorsViewPanel channel={drawingChannel} />
+      <CollaboratorsViewPanel channel={channel} />
       <div
         className={clsx("h-screen w-screen", {
           "cursor-crosshair": tool === "pencil",
@@ -174,7 +165,10 @@ const HomePage = () => {
                   globalCompositeOperation="source-over"
                 />
               ))}
-              <CollaboratorsCursors stageRef={stageRef} />
+              {channel && <CollaboratorsCursors
+                stageRef={stageRef}
+                channel={channel}
+              />}
             </Layer>
           </Stage>
         )}

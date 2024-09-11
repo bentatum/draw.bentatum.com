@@ -1,50 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Ably, { Message, RealtimeChannel } from 'ably';
 import useAblyTokenQuery from './useAblyTokenQuery';
+import { CHANNEL_NAME } from '@/config';
 
-const useAblyChannel = (channelName: string, onMessage: (message: Message) => void) => {
-  const [clientId, setClientId] = useState<string | null>(null);
+const useAblyChannel = (onMessage?: (message: Message, connectionId: string) => void) => {
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const { data: token } = useAblyTokenQuery();
-
+  const ablyRef = useRef<Ably.Realtime | null>(null);
+  const [connectionId, setConnectionId] = useState<string | null>(null);
   useEffect(() => {
-    const initializeAbly = async () => {
-      try {
-        const ably = new Ably.Realtime({
-          token: token,
-          authUrl: '/api/auth',
-        });
-        const ablyChannel = ably.channels.get(channelName);
-        setChannel(ablyChannel);
+    if (!token) return;
 
-        ably.connection.on('connected', () => {
-          // Use clientId if provided by the server, otherwise fall back to connectionId
-          const id = ably.auth.clientId || ably.connection.id;
-          if (id) {
-            setClientId(id);
-          }
-        });
+    const ably = new Ably.Realtime({
+      token: token,
+      authUrl: '/api/auth',
+    });
+    ablyRef.current = ably;
 
-        ablyChannel.subscribe(channelName, (message: Message) => {
-          if (message.connectionId !== ably.connection.id) {
-            onMessage(message);
-          }
-        });
+    ably.connection.on('connected', () => {
+      console.log('connected', ably.connection.id!);
+      setConnectionId(ably.connection.id!);
 
-        return () => {
-          ablyChannel.unsubscribe();
-        };
-      } catch (error) {
-        console.error('Error initializing Ably:', error);
-      }
+      const ablyChannel = ably.channels.get(CHANNEL_NAME);
+      setChannel(ablyChannel);
+
+      ablyChannel.subscribe(CHANNEL_NAME, (message: Message) => {
+        if (message.connectionId !== ably.connection.id) {
+          onMessage?.(message, ably.connection.id!);
+        }
+      });
+    });
+    return () => {
+      ably.connection.off();
+      ably.close();
     };
+  }, [token, onMessage]);
 
-    if (token) {
-      initializeAbly();
-    }
-  }, [token, channelName, onMessage]);
-
-  return { clientId, channel };
+  return { channel, connectionId };
 };
 
 export default useAblyChannel;

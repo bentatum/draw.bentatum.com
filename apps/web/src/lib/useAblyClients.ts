@@ -1,38 +1,43 @@
 import { useState, useCallback, useEffect } from 'react';
-import { PresenceMessage, RealtimeChannel } from 'ably';
-import useSWR from 'swr';
+import { RealtimeChannel } from 'ably';
+import getClientColor from './getClientColor';
 
-export function useAblyClients(channel: RealtimeChannel | null) {
-  const [clients, setClients] = useState<string[]>([]);
+interface ClientInfo {
+  id: string;
+  hue: number;
+}
+
+interface Options {
+  filterConnectionId?: string;
+}
+
+export function useAblyClients(channel: RealtimeChannel | null, options: Options = {}) {
+  const [clients, setClients] = useState<ClientInfo[]>([]);
 
   const fetchClients = useCallback(async () => {
     try {
       const members = await channel?.presence.get();
-      return members?.map(member => member.connectionId);
+      const newClients = members?.map(member => {
+        const { hue } = getClientColor(member.connectionId);
+        return { id: member.connectionId, hue };
+      }).filter(client => client.id !== options.filterConnectionId) || [];
+      setClients(newClients);
     } catch (err) {
       console.error('Error fetching presence members:', err);
-      return [];
+      setClients([]);
     }
-  }, [channel]);
-
-  const { data: swrClients } = useSWR('ablyClients', fetchClients, {
-    refreshInterval: 5000, // Refresh every 5 seconds
-  });
-
-  useEffect(() => {
-    if (swrClients) {
-      setClients(swrClients);
-    }
-  }, [swrClients]);
+  }, [channel, options.filterConnectionId]);
 
   useEffect(() => {
     if (channel) {
-      const handleEnter = (member: PresenceMessage) => {
-        setClients((prevClients) => [...prevClients, member.connectionId]);
+      fetchClients();
+
+      const handleEnter = async () => {
+        fetchClients();
       };
 
-      const handleLeave = (member: PresenceMessage) => {
-        setClients((prevClients) => prevClients.filter(id => id !== member.connectionId));
+      const handleLeave = async () => {
+        fetchClients();
       };
 
       channel.presence.subscribe('enter', handleEnter);
@@ -46,7 +51,7 @@ export function useAblyClients(channel: RealtimeChannel | null) {
         channel.presence.unsubscribe('leave', handleLeave);
       };
     }
-  }, [channel]);
+  }, [channel, fetchClients]);
 
   return clients;
 }

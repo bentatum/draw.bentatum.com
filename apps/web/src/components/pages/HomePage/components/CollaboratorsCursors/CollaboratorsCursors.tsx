@@ -1,45 +1,19 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Circle } from "react-konva";
-import useAblyChannel from "@/lib/useAblyChannel";
 import Konva from "konva";
+import { CHANNEL_NAME } from "@/config";
+import getClientColor from "@/lib/getClientColor";
 
 interface CollaboratorCursorsProps {
   stageRef: React.RefObject<Konva.Stage>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  channel: any;
 }
 
-const CollaboratorCursors: React.FC<CollaboratorCursorsProps> = ({ stageRef }) => {
+const CollaboratorCursors: React.FC<CollaboratorCursorsProps> = ({ stageRef, channel }) => {
   const [collaboratorMousePositions, setCollaboratorMousePositions] = useState<{ [key: string]: { x: number; y: number } }>({});
   const latestMousePositions = useRef<{ [key: string]: { x: number; y: number } }>({});
   const requestRef = useRef<number>();
-
-  // Handle incoming mouse position messages from collaborators
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleMouseMessage = useCallback((message: any) => {
-    latestMousePositions.current = {
-      ...latestMousePositions.current,
-      [message.data.clientId]: { x: message.data.x, y: message.data.y },
-    };
-  }, []);
-
-  // Subscribe to the 'mouse' channel to receive mouse position updates
-  const { channel: mouseChannel } = useAblyChannel('mouse', handleMouseMessage);
-
-  // Publish the current user's mouse position to the 'mouse' channel
-  const publishMouse = useCallback((point: { x: number; y: number }) => {
-    if (mouseChannel) {
-      mouseChannel.publish('mouse', { x: point.x, y: point.y });
-    }
-  }, [mouseChannel]);
-
-  // Get the pointer position relative to the canvas
-  const getRelativePointerPosition = (node: Konva.Node) => {
-    const transform = node.getAbsoluteTransform().copy();
-    transform.invert();
-    const pos = node.getStage()?.getPointerPosition();
-    if (!pos) return { x: 0, y: 0 }; // Return a default position if pos is null
-    const relativePos = transform.point(pos);
-    return relativePos;
-  };
 
   // Transform the cursor position based on the current scale and position of the canvas
   const transformPosition = (x: number, y: number) => {
@@ -55,29 +29,6 @@ const CollaboratorCursors: React.FC<CollaboratorCursorsProps> = ({ stageRef }) =
   };
 
   useEffect(() => {
-    // Handle mouse move events to publish the current user's mouse position
-    const handleMouseMove = () => {
-      const stage = stageRef.current;
-      if (!stage) return;
-      const point = getRelativePointerPosition(stage);
-      publishMouse(point);
-    };
-
-    const stage = stageRef.current;
-    if (stage) {
-      stage.on('mousemove', handleMouseMove);
-      stage.on('touchmove', handleMouseMove);
-    }
-
-    return () => {
-      if (stage) {
-        stage.off('mousemove', handleMouseMove);
-        stage.off('touchmove', handleMouseMove);
-      }
-    };
-  }, [stageRef, publishMouse]);
-
-  useEffect(() => {
     // Update the state with the latest mouse positions using requestAnimationFrame
     const updateMousePositions = () => {
       setCollaboratorMousePositions({ ...latestMousePositions.current });
@@ -87,18 +38,38 @@ const CollaboratorCursors: React.FC<CollaboratorCursorsProps> = ({ stageRef }) =
     return () => cancelAnimationFrame(requestRef.current!);
   }, []);
 
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleMessage = (message: any) => {
+      if (message.name === CHANNEL_NAME && message.data.points) {
+        const points = message.data.points;
+        const lastIndex = points.length - 2;
+        latestMousePositions.current = {
+          ...latestMousePositions.current,
+          [message.connectionId]: { x: points[lastIndex], y: points[lastIndex + 1] },
+        };
+      }
+    };
+
+    channel.subscribe(handleMessage);
+    return () => {
+      channel.unsubscribe(handleMessage);
+    };
+  }, [channel]);
+
   return (
     <>
       {Object.entries(collaboratorMousePositions).map(([clientId, pos]) => {
-        // Transform the cursor position before rendering to ensure it is correctly positioned
         const transformedPos = transformPosition(pos.x, pos.y);
+        const { hue } = getClientColor(clientId);
         return (
           <Circle
             key={clientId}
             x={transformedPos.x}
             y={transformedPos.y}
             radius={5}
-            fill="red"
+            fill={`hsl(${hue}, 70%, 60%)`}
+            opacity={1}
           />
         );
       })}
