@@ -1,14 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import http from 'http';
-import { ORIGIN, PORT } from './config';
+import { ALLOWED_ORIGIN, PORT } from './config';
 import { supabase } from './lib/clients/supabase';
 
 const app = express();
 const server = http.createServer(app);
 
 const corsOptions = {
-  origin: ORIGIN,
+  origin: ALLOWED_ORIGIN,
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204
