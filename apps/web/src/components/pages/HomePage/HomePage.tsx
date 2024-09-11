@@ -14,7 +14,7 @@ import fetcher from "@/lib/fetcher";
 import ConnectedUsersPanel from "./components/ConnectedUsersPanel";
 
 const HomePage = () => {
-  const { lines: fetchedLines, mutate } = useLines();
+  const { lines: fetchedLines } = useLines();
   const [color, setColor] = useState("#000000");
   const [brushRadius, setBrushRadius] = useState(4);
   const [brushOpacity, setBrushOpacity] = useState(1);
@@ -37,7 +37,15 @@ const HomePage = () => {
     }
   };
 
-  const loadCanvasState = () => {
+  useEffect(() => {
+    if (fetchedLines) {
+      setLines(fetchedLines);
+    }
+  }, [fetchedLines]);
+
+  useEffect(() => {
+    if (!isStageReady) return;
+
     const savedScale = localStorage.getItem("canvasScale");
     const savedPosition = localStorage.getItem("canvasPosition");
 
@@ -51,39 +59,27 @@ const HomePage = () => {
       const position = JSON.parse(savedPosition);
       stageRef.current.position(position);
     }
-  };
-
-  const saveCanvasState = (scale: number, position: { x: number; y: number }) => {
-    localStorage.setItem("canvasScale", scale.toString());
-    localStorage.setItem("canvasPosition", JSON.stringify(position));
-  };
-
-  useEffect(() => {
-    if (fetchedLines) {
-      setLines(fetchedLines);
-    }
-  }, [fetchedLines]);
-
-  useEffect(() => {
-    if (isStageReady) {
-      loadCanvasState();
-    }
   }, [isStageReady]);
 
   useEffect(() => {
-    if (isStageReady) {
-      saveCanvasState(scale, stageRef.current?.position() || { x: 0, y: 0 });
-    }
+    if (!isStageReady) return;
+
+    // Save scale to localStorage whenever it changes
+    console.log('saving scale', scale);
+    localStorage.setItem("canvasScale", scale.toString());
   }, [scale, isStageReady]);
 
   const saveLines = async (lines: LineData[]) => {
     try {
+      console.log('saving lines', lines);
       await fetcher(`/lines`, {
         method: 'POST',
         body: JSON.stringify(lines),
       });
 
-      mutate(); // Refresh the lines after saving
+      console.log('lines saved');
+
+      // mutate(); // Refresh the lines after saving
     } catch (error) {
       console.error('Error saving lines:', error);
     }
@@ -136,7 +132,9 @@ const HomePage = () => {
           stage.x(stage.x() + dx * scale);
           stage.y(stage.y() + dy * scale);
           stage.batchDraw();
-          saveCanvasState(scale, stage.position());
+
+          // Commenting out localStorage update during drawing
+          localStorage.setItem("canvasPosition", JSON.stringify(stage.position()));
         });
       }
       lastPosRef.current = newPos;
@@ -179,7 +177,9 @@ const HomePage = () => {
     stage.position(newPos);
     stage.batchDraw();
     setScale(newScale);
-    saveCanvasState(newScale, newPos);
+
+    // Save position to localStorage
+    localStorage.setItem("canvasPosition", JSON.stringify(newPos));
   };
 
   return (

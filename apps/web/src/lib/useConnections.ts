@@ -16,6 +16,9 @@ const useConnections = () => {
         // @ts-expect-error todo
         mutate((connections) => [...(connections || []), payload.new], false);
       })
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(subscription);
