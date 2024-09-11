@@ -1,13 +1,20 @@
 import express from 'express';
 import cors from 'cors';
 import http from 'http';
-import { PORT } from './config';
+import { ORIGIN, PORT } from './config';
 import { supabase } from './lib/clients/supabase';
 
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors());
+const corsOptions = {
+  origin: ORIGIN,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.get('/', (req, res) => {
