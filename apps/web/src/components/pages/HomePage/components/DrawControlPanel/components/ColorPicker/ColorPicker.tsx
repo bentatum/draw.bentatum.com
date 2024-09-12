@@ -17,6 +17,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ setColor, color }) => {
     { name: "green", hex: "#10B981" },
     { name: "blue", hex: "#3B82F6" },
     { name: "yellow", hex: "#F59E0B" },
+    { name: "purple", hex: "#8B5CF6" },
   ];
 
   return (
@@ -24,25 +25,18 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ setColor, color }) => {
       {presetColors.map(({ name, hex }) => (
         <ControlButton
           key={name}
+          selected={color === hex}
           className={clsx({
             'bg-black dark:bg-white': name === 'white' || name === 'black',
             'bg-red-500': name === 'red',
             'bg-green-500': name === 'green',
             'bg-blue-500': name   === 'blue',
             'bg-yellow-500': name === 'yellow',
+            'bg-purple-500': name === 'purple',
           })}
           onClick={() => setColor(hex)}
         />
       ))}
-      <div
-        className={clsx("ring-1 ring-blue-400 shrink-0 w-9 h-9 rounded-lg border border-gray-50 dark:border-gray-700", {
-          'bg-black dark:bg-white': color === '#FFFFFF' || color === '#000000',
-          'bg-red-500': color === '#EF4444',
-          'bg-green-500': color === '#10B981',
-          'bg-blue-500': color === '#3B82F6',
-          'bg-yellow-500': color === '#F59E0B',
-        })}
-      />
     </div>
   );
 };

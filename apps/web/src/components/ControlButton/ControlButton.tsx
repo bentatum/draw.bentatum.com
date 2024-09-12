@@ -15,7 +15,7 @@ const ControlButton: React.FC<ControlButtonProps> = ({ onClick, selected, childr
         'rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 dark:border-gray-700 p-1 flex items-center justify-center text-gray-800 dark:text-gray-200',
         {
           "h-9 w-9": !className?.match(/\bh-|\bw-/),
-          "bg-gray-300 dark:bg-gray-500": selected,
+          "ring-1 ring-blue-400": selected,
           'bg-white dark:bg-gray-700': !selected && !className?.match(/bg-/)
         },
         className
