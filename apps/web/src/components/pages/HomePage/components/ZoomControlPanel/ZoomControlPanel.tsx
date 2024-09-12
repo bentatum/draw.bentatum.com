@@ -41,7 +41,7 @@ const ZoomControlPanel: FC<ZoomControlPanelProps> = ({ setScale, scale, stageRef
   const handleZoomOut = () => handleZoom(false);
 
   return (
-    <Panel className="z-10 fixed bottom-4 left-4 bg-white p-2 rounded flex items-center gap-2 text-gray-600">
+    <Panel className="z-10 fixed bottom-4 left-4 p-2 rounded flex items-center gap-2">
       <ControlButton onClick={handleZoomOut}>-</ControlButton>
       <span className="leading-none">{Math.round(scale * 100)}%</span>
       <ControlButton onClick={handleZoomIn}>+</ControlButton>

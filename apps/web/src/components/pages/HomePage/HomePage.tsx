@@ -5,6 +5,7 @@ import { Stage, Layer, Line } from "react-konva";
 import useDimensions from "@/lib/useDimensions";
 import clsx from "clsx";
 import Konva from "konva";
+import { useTheme } from "next-themes";
 import DrawControlPanel from "./components/DrawControlPanel/DrawControlPanel";
 import ZoomControlPanel from "./components/ZoomControlPanel";
 import { LineData } from "@/types";
@@ -12,8 +13,10 @@ import ToolSelectPanel from "./components/ToolSelectPanel";
 import useLines from "@/lib/useLines";
 import fetcher from "@/lib/fetcher";
 import ConnectedUsersPanel from "./components/ConnectedUsersPanel";
+import DarkModeControlButton from "@/components/DarkModeControlButton";
 
 const HomePage = () => {
+  const { resolvedTheme } = useTheme();
   const { lines: fetchedLines } = useLines();
   const [color, setColor] = useState("#000000");
   const [brushRadius, setBrushRadius] = useState(4);
@@ -191,42 +194,44 @@ const HomePage = () => {
       const touch1 = e.evt.touches[0];
       const touch2 = e.evt.touches[1];
 
-      if (!touch1 || !touch2 || !stageRef.current) return;
+      if (!touch1 || !touch2) return;
 
       const dist = Math.sqrt(
         Math.pow(touch1.clientX - touch2.clientX, 2) +
         Math.pow(touch1.clientY - touch2.clientY, 2)
       );
 
-      if (!stageRef.current?.attrs.lastDist) {
-        stageRef.current.attrs.lastDist = dist;
+      if (!stage.attrs.lastDist) {
+        stage.attrs.lastDist = dist;
+        return;
       }
 
       const oldScale = stage.scaleX();
-      const newScale = oldScale * (dist / stageRef.current.attrs.lastDist);
+      const newScale = oldScale * (dist / stage.attrs.lastDist);
 
-      stageRef.current.attrs.lastDist = dist;
-
-      const pointer = {
+      const midpoint = {
         x: (touch1.clientX + touch2.clientX) / 2,
         y: (touch1.clientY + touch2.clientY) / 2,
       };
 
       const mousePointTo = {
-        x: (pointer.x - stage.x()) / oldScale,
-        y: (pointer.y - stage.y()) / oldScale,
+        x: (midpoint.x - stage.x()) / oldScale,
+        y: (midpoint.y - stage.y()) / oldScale,
+      };
+
+      const newPos = {
+        x: midpoint.x - mousePointTo.x * newScale,
+        y: midpoint.y - mousePointTo.y * newScale,
       };
 
       stage.scale({ x: newScale, y: newScale });
-      const newPos = {
-        x: pointer.x - mousePointTo.x * newScale,
-        y: pointer.y - mousePointTo.y * newScale,
-      };
       stage.position(newPos);
       stage.batchDraw();
-      setScale(newScale);
 
-      // Save position to localStorage
+      setScale(newScale);
+      stage.attrs.lastDist = dist;
+
+      localStorage.setItem("canvasScale", newScale.toString());
       localStorage.setItem("canvasPosition", JSON.stringify(newPos));
     }
   }, []);
@@ -236,17 +241,22 @@ const HomePage = () => {
     if (property === 'color') setColor(value);
     if (property === 'brushRadius') setBrushRadius(value);
     if (property === 'brushOpacity') setBrushOpacity(value);
-    
+
     // Switch to pencil tool if currently in hand tool
     if (tool === 'hand') {
       setTool('pencil');
     }
   }, [tool]);
 
+  const getAdjustedColor = useCallback((lineColor: string) => {
+    return resolvedTheme === 'dark' && lineColor === '#000000' ? '#FFFFFF' : lineColor;
+  }, [resolvedTheme]);
+
   return (
     <div>
       <ToolSelectPanel setTool={setTool} tool={tool} />
-      <DrawControlPanel 
+      <DrawControlPanel
+        scale={scale}
         setColor={(color) => handleDrawingPropertyChange('color', color)}
         color={color}
         setBrushRadius={(radius) => handleDrawingPropertyChange('brushRadius', radius)}
@@ -256,6 +266,9 @@ const HomePage = () => {
       />
       <ZoomControlPanel setScale={setScale} scale={scale} stageRef={stageRef} />
       <ConnectedUsersPanel />
+
+      <DarkModeControlButton className="fixed top-4 right-4 z-10" />
+
       <div
         className={clsx("h-screen w-screen", {
           "cursor-crosshair": tool === "pencil",
@@ -286,7 +299,7 @@ const HomePage = () => {
                 <Line
                   key={i}
                   points={line.points}
-                  stroke={line.color}
+                  stroke={getAdjustedColor(line.color)}
                   strokeWidth={line.brushRadius}
                   opacity={line.brushOpacity}
                   tension={0.5}

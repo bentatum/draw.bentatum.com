@@ -33,7 +33,7 @@ const CollaboratorsViewPanel: React.FC<CollaboratorsViewPanelProps> = ({ channel
 
   return (
     <div className="z-10 h-7 fixed top-4 right-4 flex flex-row items-center gap-2">
-      <span className="text-sm text-gray-500">{clients.length === 1 ? '1 person online' : `${clients.length} people online`}</span>
+      <span className="text-sm">{clients.length === 1 ? '1 person online' : `${clients.length} people online`}</span>
       <div className="flex -space-x-2">
         {clients.map((client) => {
           const { hue } = getClientColor(client.id);

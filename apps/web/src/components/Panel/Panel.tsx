@@ -5,7 +5,7 @@ const Panel = forwardRef<HTMLDivElement, ComponentPropsWithRef<'div'>>(({ classN
   return (
     <div
       ref={ref}
-      className={clsx("bg-white p-3 rounded-lg border border-gray-100", className)}
+      className={clsx("bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-700", className)}
       {...props} />
   );
 });

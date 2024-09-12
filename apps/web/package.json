@@ -17,6 +17,7 @@
     "lodash.debounce": "^4.0.8",
     "nanoid": "^5.0.7",
     "next": "14.2.8",
+    "next-themes": "^0.3.0",
     "react": "^18",
     "react-dom": "^18",
     "react-konva": "^18.2.10",

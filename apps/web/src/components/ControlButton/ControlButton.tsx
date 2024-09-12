@@ -1,30 +1,31 @@
 import clsx from "clsx";
+import { ComponentPropsWithoutRef } from "react";
 
-interface ControlButtonProps {
-    onClick?: () => void;
-    selected?: boolean;
-    children?: React.ReactNode;
-    className?: string;
-  }
-  
-  const ControlButton: React.FC<ControlButtonProps> = ({ onClick, selected, children, className, ...props }) => {
-    return (
-      <button
-        className={clsx(
-          'rounded focus:outline-none focus:ring-1 focus:ring-blue-500 border border-gray-100 p-1 flex items-center justify-center text-gray-500',
-          {
-            "h-7 w-7": !className?.match(/\bh-|\bw-/),
-            "bg-gray-100": selected,
-            'bg-white': !selected && !className?.match(/bg-/)
-          },
-          className
-        )}
-        onClick={onClick}
-        {...props}
-      >
-        {children}
-      </button>
-    );
-  };
+export interface ControlButtonProps extends ComponentPropsWithoutRef<"button"> {
+  onClick?: () => void;
+  selected?: boolean;
+  children?: React.ReactNode;
+  className?: string;
+}
 
-  export default ControlButton;
+const ControlButton: React.FC<ControlButtonProps> = ({ onClick, selected, children, className, ...props }) => {
+  return (
+    <button
+      className={clsx(
+        'rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 border border-gray-100 dark:border-gray-700 p-1 flex items-center justify-center text-gray-500 dark:text-gray-200',
+        {
+          "h-9 w-9": !className?.match(/\bh-|\bw-/),
+          "bg-gray-300 dark:bg-gray-500": selected,
+          'bg-white dark:bg-gray-800': !selected && !className?.match(/bg-/)
+        },
+        className
+      )}
+      onClick={onClick}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+export default ControlButton;

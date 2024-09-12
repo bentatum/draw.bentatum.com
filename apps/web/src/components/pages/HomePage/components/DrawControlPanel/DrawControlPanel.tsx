@@ -8,6 +8,7 @@ import GithubIcon from "@/components/icons/GithubIcon";
 import Panel from "@/components/Panel/Panel";
 
 export interface DrawControlPanelProps {
+  scale: number;
   setColor: (color: string) => void;
   color: string;
   setBrushRadius: (radius: number) => void;
@@ -16,7 +17,7 @@ export interface DrawControlPanelProps {
   brushOpacity: number;
 }
 
-const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrushRadius, brushRadius, setBrushOpacity, brushOpacity }) => {
+const DrawControlPanel: FC<DrawControlPanelProps> = ({ scale, setColor, color, setBrushRadius, brushRadius, setBrushOpacity, brushOpacity }) => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -35,7 +36,7 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrush
           </div>
           <div>
             <label className="text-sm">Stroke width</label>
-            <StrokeWidthButtons setBrushRadius={setBrushRadius} brushRadius={brushRadius} />
+            <StrokeWidthButtons scale={scale} setBrushRadius={setBrushRadius} brushRadius={brushRadius} />
           </div>
           <div>
             <label className="text-sm">
@@ -53,7 +54,7 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrush
               />
             </div>
           </div>
-          <div className="mt-1.5 pt-3.5 flex items-center justify-between text-xs gap-2">
+          <div className="mt-1.5 pt-3.5 flex items-center justify-between text-sm gap-2">
             <p>Made by Ben Tatum</p>
             <a href="https://github.com/bentatum/draw.bentatum.com" className="text-blue-500"><span className="inline-flex items-center gap-1"><GithubIcon className="w-3 h-3 inline-block" /> Github</span></a>
           </div>

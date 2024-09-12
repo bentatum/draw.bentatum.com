@@ -1,5 +1,6 @@
 import ControlButton from "@/components/ControlButton";
 import clsx from "clsx";
+import { useTheme } from "next-themes";
 
 interface ColorPickerProps {
   setColor: (color: string) => void;
@@ -7,8 +8,11 @@ interface ColorPickerProps {
 }
 
 const ColorPicker: React.FC<ColorPickerProps> = ({ setColor, color }) => {
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme === "dark";
+
   const presetColors = [
-    { name: "black", hex: "#000000" },
+    { name: isDarkMode ? "white" : "black", hex: isDarkMode ? "#FFFFFF" : "#000000" },
     { name: "red", hex: "#EF4444" },
     { name: "green", hex: "#10B981" },
     { name: "blue", hex: "#3B82F6" },
@@ -21,18 +25,18 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ setColor, color }) => {
         <ControlButton
           key={name}
           className={clsx({
-            'bg-black': name === 'black',
+            'bg-black dark:bg-white': name === 'white' || name === 'black',
             'bg-red-500': name === 'red',
             'bg-green-500': name === 'green',
-            'bg-blue-500': name === 'blue',
+            'bg-blue-500': name   === 'blue',
             'bg-yellow-500': name === 'yellow',
           })}
           onClick={() => setColor(hex)}
         />
       ))}
       <div
-        className={clsx("shrink-0 w-7 h-7 rounded ml-1 border border-gray-50", {
-          'bg-black': color === '#000000',
+        className={clsx("shrink-0 w-9 h-9 rounded-lg ml-1 border border-gray-50 dark:border-gray-700", {
+          'bg-black dark:bg-white': color === '#FFFFFF' || color === '#000000',
           'bg-red-500': color === '#EF4444',
           'bg-green-500': color === '#10B981',
           'bg-blue-500': color === '#3B82F6',
