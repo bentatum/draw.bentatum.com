@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Stage, Layer, Line } from "react-konva";
 import useDimensions from "@/lib/useDimensions";
 import clsx from "clsx";
@@ -25,7 +25,7 @@ const HomePage = () => {
   const stageRef = useRef<Konva.Stage | null>(null);
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
   const dragStartPos = useRef<{ x: number; y: number } | null>(null);
-  const lastPosRef = useRef<{ x: number; y: number } | null>(null);
+  const lastPointerPosition = useRef<{ x: number; y: number } | null>(null);
   const { width, height, dimensionsReady } = useDimensions(stageContainerRef);
   const [newLines, setNewLines] = useState<LineData[]>([]);
   const [isStageReady, setIsStageReady] = useState(false);
@@ -67,7 +67,7 @@ const HomePage = () => {
     localStorage.setItem("canvasScale", scale.toString());
   }, [scale, isStageReady]);
 
-  const saveLines = async (lines: LineData[]) => {
+  const saveLines = useCallback(async (lines: LineData[]) => {
     try {
       await fetcher(`/lines`, {
         method: 'POST',
@@ -77,18 +77,18 @@ const HomePage = () => {
     } catch (error) {
       console.error('Error saving lines:', error);
     }
-  };
+  }, []);
 
-  const getRelativePointerPosition = (node: Konva.Node) => {
+  const getRelativePointerPosition = useCallback((node: Konva.Node) => {
     const transform = node.getAbsoluteTransform().copy();
     transform.invert();
     const pos = node.getStage()?.getPointerPosition();
     if (!pos) return { x: 0, y: 0 };
     const relativePos = transform.point(pos);
     return relativePos;
-  };
+  }, []);
 
-  const handleStart = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>, tool: string) => {
+  const handleStart = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>, tool: string) => {
     const stage = e.target.getStage();
     if (!stage) return;
     if (tool === "pencil") {
@@ -98,14 +98,15 @@ const HomePage = () => {
       setLines((prevLines) => [...prevLines, newLine]);
       setNewLines((prevNewLines) => [...prevNewLines, newLine]);
     } else if (tool === "hand") {
-      dragStartPos.current = getRelativePointerPosition(stage);
+      dragStartPos.current = stage.getPointerPosition() || null;
+      lastPointerPosition.current = dragStartPos.current;
     }
-  };
+  }, [color, brushRadius, brushOpacity, getRelativePointerPosition]);
 
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => handleStart(e, tool);
   const handleTouchStart = (e: Konva.KonvaEventObject<TouchEvent>) => handleStart(e, tool);
 
-  const handleMove = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>, tool: string) => {
+  const handleMove = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
     const stage = e.target.getStage();
     if (!stage) return;
     if (tool === "pencil" && isDrawing.current) {
@@ -117,41 +118,46 @@ const HomePage = () => {
         const newLines = prevLines.slice(0, prevLines.length - 1);
         return [...newLines, lastLine];
       });
-    } else if (tool === "hand" && dragStartPos.current) {
-      const newPos = getRelativePointerPosition(stage);
-      if (lastPosRef.current) {
-        const dx = (newPos.x - lastPosRef.current.x);
-        const dy = (newPos.y - lastPosRef.current.y);
-        requestAnimationFrame(() => {
-          stage.x(stage.x() + dx * scale);
-          stage.y(stage.y() + dy * scale);
-          stage.batchDraw();
+    } else if (tool === "hand" && dragStartPos.current && lastPointerPosition.current) {
+      const newPos = stage.getPointerPosition();
+      if (!newPos) return;
 
-          // Commenting out localStorage update during drawing
-          localStorage.setItem("canvasPosition", JSON.stringify(stage.position()));
-        });
-      }
-      lastPosRef.current = newPos;
+      const dx = newPos.x - lastPointerPosition.current.x;
+      const dy = newPos.y - lastPointerPosition.current.y;
+
+      stage.x(stage.x() + dx);
+      stage.y(stage.y() + dy);
+      stage.batchDraw();
+
+      lastPointerPosition.current = newPos;
+
+      // Update localStorage with the new position
+      localStorage.setItem("canvasPosition", JSON.stringify(stage.position()));
     }
-  };
+  }, [tool, getRelativePointerPosition]);
 
-  const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => handleMove(e, tool);
-  const handleTouchMove = (e: Konva.KonvaEventObject<TouchEvent>) => handleMove(e, tool);
+  const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => handleMove(e);
+  const handleTouchMove = (e: Konva.KonvaEventObject<TouchEvent>) => handleMove(e);
 
-  const handleEnd = () => {
+  const handleEnd = useCallback(() => {
     if (isDrawing.current) {
       saveLines(newLines);
       setNewLines([]); // Clear new lines after saving
     }
     isDrawing.current = false;
     dragStartPos.current = null;
-    lastPosRef.current = null;
-  };
+    lastPointerPosition.current = null;
+
+    // Save final position to localStorage
+    if (stageRef.current) {
+      localStorage.setItem("canvasPosition", JSON.stringify(stageRef.current.position()));
+    }
+  }, [saveLines, newLines]);
 
   const handleMouseUp = handleEnd;
   const handleTouchEnd = handleEnd;
 
-  const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
+  const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
     const stage = stageRef.current;
     if (!stage) return;
@@ -162,7 +168,7 @@ const HomePage = () => {
       x: (pointer.x - stage.x()) / oldScale,
       y: (pointer.y - stage.y()) / oldScale,
     };
-    const newScale = e.evt.deltaY > 0 ? oldScale * 1.1 : oldScale / 1.1;
+    const newScale = e.evt.deltaY > 0 ? oldScale / 1.1 : oldScale * 1.1;
     stage.scale({ x: newScale, y: newScale });
     const newPos = {
       x: pointer.x - mousePointTo.x * newScale,
@@ -174,9 +180,9 @@ const HomePage = () => {
 
     // Save position to localStorage
     localStorage.setItem("canvasPosition", JSON.stringify(newPos));
-  };
+  }, [scale]);
 
-  const handlePinch = (e: Konva.KonvaEventObject<TouchEvent>) => {
+  const handlePinch = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
     e.evt.preventDefault();
     const stage = stageRef.current;
     if (!stage) return;
@@ -223,7 +229,7 @@ const HomePage = () => {
       // Save position to localStorage
       localStorage.setItem("canvasPosition", JSON.stringify(newPos));
     }
-  };
+  }, [scale]);
 
   return (
     <div>
