@@ -18,7 +18,7 @@ const StrokeWidthButtons: React.FC<StrokeWidthButtonsProps> = ({ setBrushRadius,
             selected={brushRadius === width}
             onClick={() => setBrushRadius(width)}
           >
-            <div className={clsx("w-full rounded-full bg-black dark:bg-white", {
+            <div className={clsx("w-full rounded-full bg-gray-800 dark:bg-gray-200", {
               "h-px": index === 0,
               "h-0.5": index === 1,
               "h-1": index === 2,

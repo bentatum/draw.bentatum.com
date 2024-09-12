@@ -71,10 +71,6 @@ const HomePage = () => {
     localStorage.setItem("canvasScale", scale.toString());
   }, [scale, isStageReady]);
 
-  useEffect(() => {
-    localStorage.setItem("brushRadius", brushRadius.toString());
-  }, [brushRadius]);
-
   const saveLines = useCallback(async (lines: LineData[]) => {
     try {
       await fetcher(`/lines`, {
@@ -262,16 +258,18 @@ const HomePage = () => {
 
   return (
     <div>
-      <ToolSelectPanel setTool={setTool} tool={tool} />
-      <DrawControlPanel
-        setColor={(color) => handleDrawingPropertyChange('color', color)}
-        color={color}
-        setBrushRadius={(radius) => handleDrawingPropertyChange('brushRadius', radius)}
-        brushRadius={brushRadius}
-        setBrushOpacity={(opacity) => handleDrawingPropertyChange('brushOpacity', opacity)}
-        brushOpacity={brushOpacity}
-      />
-      <ZoomControlPanel setScale={setScale} scale={scale} stageRef={stageRef} />
+      {isStageReady && (<>
+        <ToolSelectPanel setTool={setTool} tool={tool} />
+        <DrawControlPanel
+          setColor={(color) => handleDrawingPropertyChange('color', color)}
+          color={color}
+          setBrushRadius={(radius) => handleDrawingPropertyChange('brushRadius', radius)}
+          brushRadius={brushRadius}
+          setBrushOpacity={(opacity) => handleDrawingPropertyChange('brushOpacity', opacity)}
+          brushOpacity={brushOpacity}
+        />
+        <ZoomControlPanel setScale={setScale} scale={scale} stageRef={stageRef} />
+      </>)}
       <ConnectedUsersPanel />
 
       <DarkModeControlButton className="fixed top-4 right-4 z-10" />
