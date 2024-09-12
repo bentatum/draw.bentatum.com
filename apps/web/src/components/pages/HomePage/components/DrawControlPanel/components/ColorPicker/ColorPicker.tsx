@@ -35,7 +35,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ setColor, color }) => {
         />
       ))}
       <div
-        className={clsx("shrink-0 w-9 h-9 rounded-lg ml-1 border border-gray-50 dark:border-gray-700", {
+        className={clsx("ring-1 ring-blue-400 shrink-0 w-9 h-9 rounded-lg border border-gray-50 dark:border-gray-700", {
           'bg-black dark:bg-white': color === '#FFFFFF' || color === '#000000',
           'bg-red-500': color === '#EF4444',
           'bg-green-500': color === '#10B981',

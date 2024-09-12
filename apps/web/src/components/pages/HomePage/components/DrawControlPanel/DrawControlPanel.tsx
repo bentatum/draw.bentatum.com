@@ -8,7 +8,6 @@ import GithubIcon from "@/components/icons/GithubIcon";
 import Panel from "@/components/Panel/Panel";
 
 export interface DrawControlPanelProps {
-  scale: number;
   setColor: (color: string) => void;
   color: string;
   setBrushRadius: (radius: number) => void;
@@ -17,7 +16,7 @@ export interface DrawControlPanelProps {
   brushOpacity: number;
 }
 
-const DrawControlPanel: FC<DrawControlPanelProps> = ({ scale, setColor, color, setBrushRadius, brushRadius, setBrushOpacity, brushOpacity }) => {
+const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrushRadius, brushRadius, setBrushOpacity, brushOpacity }) => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -36,7 +35,7 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ scale, setColor, color, s
           </div>
           <div>
             <label className="text-sm">Stroke width</label>
-            <StrokeWidthButtons scale={scale} setBrushRadius={setBrushRadius} brushRadius={brushRadius} />
+            <StrokeWidthButtons setBrushRadius={setBrushRadius} brushRadius={brushRadius} />
           </div>
           <div>
             <label className="text-sm">

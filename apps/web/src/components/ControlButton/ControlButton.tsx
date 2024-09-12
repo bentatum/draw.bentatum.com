@@ -12,11 +12,11 @@ const ControlButton: React.FC<ControlButtonProps> = ({ onClick, selected, childr
   return (
     <button
       className={clsx(
-        'rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 border border-gray-100 dark:border-gray-700 p-1 flex items-center justify-center text-gray-500 dark:text-gray-200',
+        'rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 border border-gray-200 dark:border-gray-700 p-1 flex items-center justify-center text-gray-500 dark:text-gray-200',
         {
           "h-9 w-9": !className?.match(/\bh-|\bw-/),
           "bg-gray-300 dark:bg-gray-500": selected,
-          'bg-white dark:bg-gray-800': !selected && !className?.match(/bg-/)
+          'bg-white dark:bg-gray-700': !selected && !className?.match(/bg-/)
         },
         className
       )}

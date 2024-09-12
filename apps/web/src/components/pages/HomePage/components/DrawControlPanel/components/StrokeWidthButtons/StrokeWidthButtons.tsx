@@ -4,27 +4,31 @@ import clsx from "clsx";
 export interface StrokeWidthButtonsProps {
   setBrushRadius: (radius: number) => void;
   brushRadius: number;
-  scale: number; // Add scale prop
 }
 
-const baseStrokeWidths = [10, 40, 50];
+const strokeWidths = [4, 17, 32, 47, 62, 75];
 
-const StrokeWidthButtons: React.FC<StrokeWidthButtonsProps> = ({ setBrushRadius, brushRadius, scale }) => {
+const StrokeWidthButtons: React.FC<StrokeWidthButtonsProps> = ({ setBrushRadius, brushRadius }) => {
   return (
     <div className="flex items-center gap-1.5 mt-1">
-      {baseStrokeWidths.map((width, index) => (
-        <ControlButton
-          key={width}
-          selected={!brushRadius || brushRadius === Math.round(width * scale)}
-          onClick={() => setBrushRadius(Math.round(width * scale))}
-        >
-          <div className={clsx("w-full rounded-full bg-black dark:bg-white", {
-            "h-1": index === 0,
-            "h-3": index === 1,
-            "h-5": index === 2,
-          })} />
-        </ControlButton>
-      ))}
+      {strokeWidths.map((width, index) => {
+        return (
+          <ControlButton
+            key={width}
+            selected={brushRadius === width}
+            onClick={() => setBrushRadius(width)}
+          >
+            <div className={clsx("w-full rounded-full bg-black dark:bg-white", {
+              "h-px": index === 0,
+              "h-0.5": index === 1,
+              "h-1": index === 2,
+              "h-1.5": index === 3,
+              "h-2": index === 4,
+              "h-2.5": index === 5
+            })} />
+          </ControlButton>
+        );
+      })}
     </div>
   );
 };

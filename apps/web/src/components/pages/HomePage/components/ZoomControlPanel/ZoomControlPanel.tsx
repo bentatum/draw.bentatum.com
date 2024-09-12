@@ -1,5 +1,6 @@
 import ControlButton from "@/components/ControlButton";
-import Panel from "@/components/Panel";
+import { PlusIcon } from "@heroicons/react/24/solid";
+import { MinusIcon } from "@heroicons/react/24/solid";
 import Konva from "konva";
 import { FC } from "react";
 
@@ -41,11 +42,11 @@ const ZoomControlPanel: FC<ZoomControlPanelProps> = ({ setScale, scale, stageRef
   const handleZoomOut = () => handleZoom(false);
 
   return (
-    <Panel className="z-10 fixed bottom-4 left-4 p-2 rounded flex items-center gap-2">
-      <ControlButton onClick={handleZoomOut}>-</ControlButton>
+    <div className="z-10 fixed bottom-4 left-4 flex items-center gap-2">
+      <ControlButton className="h-12 w-12" onClick={handleZoomOut}><MinusIcon className="w-7 h-7" /></ControlButton>
       <span className="leading-none">{Math.round(scale * 100)}%</span>
-      <ControlButton onClick={handleZoomIn}>+</ControlButton>
-    </Panel>
+      <ControlButton className="h-12 w-12" onClick={handleZoomIn}><PlusIcon className="w-7 h-7" /></ControlButton>
+    </div>
   )
 };
 

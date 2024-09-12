@@ -14,12 +14,13 @@ import useLines from "@/lib/useLines";
 import fetcher from "@/lib/fetcher";
 import ConnectedUsersPanel from "./components/ConnectedUsersPanel";
 import DarkModeControlButton from "@/components/DarkModeControlButton";
+import useLocalStorage from "@/lib/useLocalStorage";
 
 const HomePage = () => {
   const { resolvedTheme } = useTheme();
   const { lines: fetchedLines } = useLines();
   const [color, setColor] = useState("#000000");
-  const [brushRadius, setBrushRadius] = useState(4);
+  const [brushRadius, setBrushRadius] = useLocalStorage("brushRadius", 4);
   const [brushOpacity, setBrushOpacity] = useState(1);
   const [lines, setLines] = useState<LineData[]>([]);
   const [scale, setScale] = useState(1);
@@ -69,6 +70,10 @@ const HomePage = () => {
     // Save scale to localStorage whenever it changes
     localStorage.setItem("canvasScale", scale.toString());
   }, [scale, isStageReady]);
+
+  useEffect(() => {
+    localStorage.setItem("brushRadius", brushRadius.toString());
+  }, [brushRadius]);
 
   const saveLines = useCallback(async (lines: LineData[]) => {
     try {
@@ -239,14 +244,17 @@ const HomePage = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDrawingPropertyChange = useCallback((property: 'color' | 'brushRadius' | 'brushOpacity', value: any) => {
     if (property === 'color') setColor(value);
-    if (property === 'brushRadius') setBrushRadius(value);
+    if (property === 'brushRadius') {
+      setBrushRadius(value);
+      localStorage.setItem("brushRadius", value.toString());
+    }
     if (property === 'brushOpacity') setBrushOpacity(value);
 
     // Switch to pencil tool if currently in hand tool
     if (tool === 'hand') {
       setTool('pencil');
     }
-  }, [tool]);
+  }, [tool, setBrushRadius]);
 
   const getAdjustedColor = useCallback((lineColor: string) => {
     return resolvedTheme === 'dark' && lineColor === '#000000' ? '#FFFFFF' : lineColor;
@@ -256,7 +264,6 @@ const HomePage = () => {
     <div>
       <ToolSelectPanel setTool={setTool} tool={tool} />
       <DrawControlPanel
-        scale={scale}
         setColor={(color) => handleDrawingPropertyChange('color', color)}
         color={color}
         setBrushRadius={(radius) => handleDrawingPropertyChange('brushRadius', radius)}
