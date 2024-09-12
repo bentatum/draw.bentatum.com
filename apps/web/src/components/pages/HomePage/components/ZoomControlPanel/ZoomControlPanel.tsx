@@ -1,4 +1,5 @@
 import ControlButton from "@/components/ControlButton";
+import Panel from "@/components/Panel";
 import Konva from "konva";
 import { FC } from "react";
 
@@ -40,11 +41,11 @@ const ZoomControlPanel: FC<ZoomControlPanelProps> = ({ setScale, scale, stageRef
   const handleZoomOut = () => handleZoom(false);
 
   return (
-    <div className="z-10 fixed bottom-4 left-4 bg-white p-2 rounded shadow flex items-center">
+    <Panel className="z-10 fixed bottom-4 left-4 bg-white p-2 rounded flex items-center gap-2 text-gray-600">
       <ControlButton onClick={handleZoomOut}>-</ControlButton>
-      <span className="mx-2">{Math.round(scale * 100)}%</span>
+      <span className="leading-none">{Math.round(scale * 100)}%</span>
       <ControlButton onClick={handleZoomIn}>+</ControlButton>
-    </div>
+    </Panel>
   )
 };
 

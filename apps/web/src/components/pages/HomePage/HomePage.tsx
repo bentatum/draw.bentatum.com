@@ -180,7 +180,7 @@ const HomePage = () => {
 
     // Save position to localStorage
     localStorage.setItem("canvasPosition", JSON.stringify(newPos));
-  }, [scale]);
+  }, []);
 
   const handlePinch = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
     e.evt.preventDefault();
@@ -229,12 +229,31 @@ const HomePage = () => {
       // Save position to localStorage
       localStorage.setItem("canvasPosition", JSON.stringify(newPos));
     }
-  }, [scale]);
+  }, []);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleDrawingPropertyChange = useCallback((property: 'color' | 'brushRadius' | 'brushOpacity', value: any) => {
+    if (property === 'color') setColor(value);
+    if (property === 'brushRadius') setBrushRadius(value);
+    if (property === 'brushOpacity') setBrushOpacity(value);
+    
+    // Switch to pencil tool if currently in hand tool
+    if (tool === 'hand') {
+      setTool('pencil');
+    }
+  }, [tool]);
 
   return (
     <div>
       <ToolSelectPanel setTool={setTool} tool={tool} />
-      <DrawControlPanel setColor={setColor} color={color} setBrushRadius={setBrushRadius} brushRadius={brushRadius} setBrushOpacity={setBrushOpacity} brushOpacity={brushOpacity} />
+      <DrawControlPanel 
+        setColor={(color) => handleDrawingPropertyChange('color', color)}
+        color={color}
+        setBrushRadius={(radius) => handleDrawingPropertyChange('brushRadius', radius)}
+        brushRadius={brushRadius}
+        setBrushOpacity={(opacity) => handleDrawingPropertyChange('brushOpacity', opacity)}
+        brushOpacity={brushOpacity}
+      />
       <ZoomControlPanel setScale={setScale} scale={scale} stageRef={stageRef} />
       <ConnectedUsersPanel />
       <div

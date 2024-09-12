@@ -23,8 +23,8 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrush
   return (
     <div className="z-10 fixed top-4 left-4">
       <div className="md:hidden mb-2">
-        <ControlButton onClick={() => setIsCollapsed(!isCollapsed)}>
-          {isCollapsed ? <Bars2Icon className="w-5 h-5" /> : <XMarkIcon className="w-5 h-5" />}
+        <ControlButton onClick={() => setIsCollapsed(!isCollapsed)} className="h-12 w-12">
+          {isCollapsed ? <Bars2Icon className="w-7 h-7" /> : <XMarkIcon className="w-7 h-7" />}
         </ControlButton>
       </div>
       {(!isMobile || !isCollapsed) && (
@@ -53,8 +53,9 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrush
               />
             </div>
           </div>
-          <div className="mt-1.5 border-t border-gray-300 pt-3.5">
-            <p className="text-xs text-gray-400">Made by Ben Tatum. <a href="https://github.com/bentatum/draw.bentatum.com" className="text-blue-500"><span className="inline-flex items-center gap-1">Github <GithubIcon className="w-3 h-3 inline-block" /></span></a></p>
+          <div className="mt-1.5 pt-3.5 flex items-center justify-between text-xs gap-2">
+            <p>Made by Ben Tatum</p>
+            <a href="https://github.com/bentatum/draw.bentatum.com" className="text-blue-500"><span className="inline-flex items-center gap-1"><GithubIcon className="w-3 h-3 inline-block" /> Github</span></a>
           </div>
         </Panel>
       )}
