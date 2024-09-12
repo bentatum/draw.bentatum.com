@@ -4,15 +4,15 @@ import ControlButton, { ControlButtonProps } from "@/components/ControlButton";
 import clsx from "clsx";
 
 const DarkModeControlButton: React.FC<ControlButtonProps> = ({ className, ...props }) => {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
 
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
   return (
     <ControlButton onClick={toggleTheme} className={clsx("h-12 w-12", className)} {...props}>
-      {theme !== "dark" ? <SunIcon className="w-6 h-6" /> : <MoonIcon className="w-6 h-6" />}
+      {resolvedTheme !== "dark" ? <SunIcon className="w-6 h-6" /> : <MoonIcon className="w-6 h-6" />}
     </ControlButton>
   );
 };
