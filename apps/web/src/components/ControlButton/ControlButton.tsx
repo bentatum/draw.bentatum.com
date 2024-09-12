@@ -11,9 +11,10 @@ interface ControlButtonProps {
     return (
       <button
         className={clsx(
-          'bg-white h-7 w-7 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 border border-gray-200 p-1 flex items-center justify-center text-gray-500',
+          'h-7 w-7 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 border border-gray-200 p-1 flex items-center justify-center text-gray-500',
           {
             "bg-gray-100": selected,
+            'bg-white': !selected && !className?.match(/bg-/)
           },
           className
         )}

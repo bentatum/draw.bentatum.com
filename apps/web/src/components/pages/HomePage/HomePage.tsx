@@ -63,22 +63,16 @@ const HomePage = () => {
 
   useEffect(() => {
     if (!isStageReady) return;
-
     // Save scale to localStorage whenever it changes
-    console.log('saving scale', scale);
     localStorage.setItem("canvasScale", scale.toString());
   }, [scale, isStageReady]);
 
   const saveLines = async (lines: LineData[]) => {
     try {
-      console.log('saving lines', lines);
       await fetcher(`/lines`, {
         method: 'POST',
         body: JSON.stringify(lines),
       });
-
-      console.log('lines saved');
-
       // mutate(); // Refresh the lines after saving
     } catch (error) {
       console.error('Error saving lines:', error);
@@ -182,6 +176,55 @@ const HomePage = () => {
     localStorage.setItem("canvasPosition", JSON.stringify(newPos));
   };
 
+  const handlePinch = (e: Konva.KonvaEventObject<TouchEvent>) => {
+    e.evt.preventDefault();
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    if (e.evt.touches.length === 2) {
+      const touch1 = e.evt.touches[0];
+      const touch2 = e.evt.touches[1];
+
+      if (!touch1 || !touch2 || !stageRef.current) return;
+
+      const dist = Math.sqrt(
+        Math.pow(touch1.clientX - touch2.clientX, 2) +
+        Math.pow(touch1.clientY - touch2.clientY, 2)
+      );
+
+      if (!stageRef.current?.attrs.lastDist) {
+        stageRef.current.attrs.lastDist = dist;
+      }
+
+      const oldScale = stage.scaleX();
+      const newScale = oldScale * (dist / stageRef.current.attrs.lastDist);
+
+      stageRef.current.attrs.lastDist = dist;
+
+      const pointer = {
+        x: (touch1.clientX + touch2.clientX) / 2,
+        y: (touch1.clientY + touch2.clientY) / 2,
+      };
+
+      const mousePointTo = {
+        x: (pointer.x - stage.x()) / oldScale,
+        y: (pointer.y - stage.y()) / oldScale,
+      };
+
+      stage.scale({ x: newScale, y: newScale });
+      const newPos = {
+        x: pointer.x - mousePointTo.x * newScale,
+        y: pointer.y - mousePointTo.y * newScale,
+      };
+      stage.position(newPos);
+      stage.batchDraw();
+      setScale(newScale);
+
+      // Save position to localStorage
+      localStorage.setItem("canvasPosition", JSON.stringify(newPos));
+    }
+  };
+
   return (
     <div>
       <ToolSelectPanel setTool={setTool} tool={tool} />
@@ -204,7 +247,10 @@ const HomePage = () => {
             onMousemove={handleMouseMove}
             onMouseup={handleMouseUp}
             onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
+            onTouchMove={(e) => {
+              handleTouchMove(e);
+              handlePinch(e);
+            }}
             onTouchEnd={handleTouchEnd}
             onWheel={handleWheel}
             scaleX={scale}
