@@ -55,7 +55,7 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrush
           </div>
           <div className="mt-1.5 pt-3.5 flex items-center justify-between text-sm gap-2">
             <p>Made by Ben Tatum</p>
-            <a href="https://github.com/bentatum/draw.bentatum.com" className="text-blue-500"><span className="inline-flex items-center gap-1"><GithubIcon className="w-3 h-3 inline-block" /> Github</span></a>
+            <a href="https://github.com/bentatum/draw.bentatum.com" target="_blank" rel="noopener noreferrer" className="text-blue-500"><span className="inline-flex items-center gap-1"><GithubIcon className="w-3 h-3 inline-block" /> Github</span></a>
           </div>
         </Panel>
       )}

@@ -19,7 +19,7 @@ import useLocalStorage from "@/lib/useLocalStorage";
 const HomePage = () => {
   const { resolvedTheme } = useTheme();
   const { lines: fetchedLines } = useLines();
-  const [color, setColor] = useState("#000000");
+  const [color, setColor] = useLocalStorage("brushColor", "#000000");
   const [brushRadius, setBrushRadius] = useLocalStorage("brushRadius", 4);
   const [brushOpacity, setBrushOpacity] = useState(1);
   const [lines, setLines] = useState<LineData[]>([]);
@@ -240,17 +240,14 @@ const HomePage = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDrawingPropertyChange = useCallback((property: 'color' | 'brushRadius' | 'brushOpacity', value: any) => {
     if (property === 'color') setColor(value);
-    if (property === 'brushRadius') {
-      setBrushRadius(value);
-      localStorage.setItem("brushRadius", value.toString());
-    }
+    if (property === 'brushRadius') setBrushRadius(value);
     if (property === 'brushOpacity') setBrushOpacity(value);
 
     // Switch to pencil tool if currently in hand tool
     if (tool === 'hand') {
       setTool('pencil');
     }
-  }, [tool, setBrushRadius]);
+  }, [tool, setColor, setBrushRadius]);
 
   const getAdjustedColor = useCallback((lineColor: string) => {
     return resolvedTheme === 'dark' && lineColor === '#000000' ? '#FFFFFF' : lineColor;
