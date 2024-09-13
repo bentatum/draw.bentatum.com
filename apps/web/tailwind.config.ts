@@ -15,9 +15,9 @@ const config: Config = {
         foreground: "var(--foreground)",
         gray: zinc,
       },
-      backgroundImage: {
-        'stripes': 'repeating-linear-gradient(135deg, var(--stripe-color) 0, var(--stripe-color) 5px, transparent 5px, transparent 15px)',
-      },
+    },
+    fontFamily: {
+      sans: ['var(--font-inter)', 'Arial', 'Helvetica', 'sans-serif'],
     },
   },
   plugins: [],
