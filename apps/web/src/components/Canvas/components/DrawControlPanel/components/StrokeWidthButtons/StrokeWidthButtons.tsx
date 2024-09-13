@@ -18,6 +18,7 @@ const StrokeWidthButtons: React.FC<StrokeWidthButtonsProps> = ({ onStrokeWidthCh
     if (tool === "hand") {
       setTool("pencil");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brushRadius]);
 
   return (

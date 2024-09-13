@@ -19,6 +19,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ onColorChange }) => {
     if (tool === "hand") {
       setTool("pencil");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [color]);
 
   const presetColors = [

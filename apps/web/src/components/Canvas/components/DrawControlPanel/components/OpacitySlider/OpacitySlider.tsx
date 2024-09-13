@@ -13,6 +13,7 @@ const OpacitySlider = () => {
     if (tool === "hand") {
       setTool("pencil");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brushOpacity]);
 
   return (

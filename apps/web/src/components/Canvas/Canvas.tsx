@@ -19,6 +19,7 @@ import useBrushColor from "./lib/useBrushColor";
 import useBrushRadius from "./lib/useBrushRadius";
 import useBrushOpacity from "./lib/useBrushOpacity";
 import useCanvasTool from "./lib/useCanvasTool";
+import useCanvasPosition from "./lib/useCanvasPosition";
 
 const HomePage = () => {
   const [lines, setLines] = useLines();
@@ -28,6 +29,7 @@ const HomePage = () => {
   const [brushRadius] = useBrushRadius();
   const [brushOpacity] = useBrushOpacity();
   const [tool] = useCanvasTool();
+  const [position, setPosition] = useCanvasPosition();
 
   const isDrawing = useRef(false);
   const stageRef = useRef<Konva.Stage | null>(null);
@@ -47,17 +49,11 @@ const HomePage = () => {
     }
   };
 
- 
-
   useEffect(() => {
-    if (!isStageReady) return;
-
-    const savedPosition = localStorage.getItem("canvasPosition");
-
-    if (savedPosition && stageRef.current) {
-      const position = JSON.parse(savedPosition);
+    if (isStageReady && position && stageRef.current) {
       stageRef.current.position(position);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isStageReady]);
 
   const saveLines = useCallback(async (lines: LineData[]) => {
@@ -94,6 +90,7 @@ const HomePage = () => {
       dragStartPos.current = stage.getPointerPosition() || null;
       lastPointerPosition.current = dragStartPos.current;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [color, brushRadius, brushOpacity, getRelativePointerPosition]);
 
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => handleStart(e, tool);
@@ -123,9 +120,7 @@ const HomePage = () => {
       stage.batchDraw();
 
       lastPointerPosition.current = newPos;
-
-      // Update localStorage with the new position
-      localStorage.setItem("canvasPosition", JSON.stringify(stage.position()));
+      setPosition(stage.position());
     }
   }, [tool, getRelativePointerPosition]);
 
@@ -143,9 +138,9 @@ const HomePage = () => {
 
     // Save final position to localStorage
     if (stageRef.current) {
-      localStorage.setItem("canvasPosition", JSON.stringify(stageRef.current.position()));
+      setPosition(stageRef.current.position());
     }
-  }, [saveLines, newLines]);
+  }, [saveLines, newLines, setPosition]);
 
   const handleMouseUp = handleEnd;
   const handleTouchEnd = handleEnd;
