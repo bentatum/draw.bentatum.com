@@ -7,17 +7,17 @@ import useMediaQuery from "@/lib/useMediaQuery";
 import GithubIcon from "@/components/icons/GithubIcon";
 import Panel from "@/components/Panel/Panel";
 import clsx from "clsx";
+import useBrushColor from "../../lib/useBrushColor";
 
 export interface DrawControlPanelProps {
-  setColor: (color: string) => void;
-  color: string;
   setBrushRadius: (radius: number) => void;
   brushRadius: number;
   setBrushOpacity: (opacity: number) => void;
   brushOpacity: number;
 }
 
-const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrushRadius, brushRadius, setBrushOpacity, brushOpacity }) => {
+const DrawControlPanel: FC<DrawControlPanelProps> = ({ setBrushRadius, brushRadius, setBrushOpacity, brushOpacity }) => {
+  const [color, setColor] = useBrushColor();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isCollapsed, setIsCollapsed] = useState(false);
 

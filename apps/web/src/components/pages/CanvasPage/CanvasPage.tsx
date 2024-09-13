@@ -16,10 +16,11 @@ import useLocalStorage from "@/lib/useLocalStorage";
 import { useZoom } from "./lib/useZoom";
 import { useDefaultLineColor } from "./lib/useDefaultLineColor";
 import useScale from "./lib/useScale";
+import useBrushColor from "./lib/useBrushColor";
 
 const HomePage = () => {
   const { lines: fetchedLines } = useLines();
-  const [color, setColor] = useLocalStorage("brushColor", "#000000");
+  const [color, setColor] = useBrushColor();
   const [brushRadius, setBrushRadius] = useLocalStorage("brushRadius", 4);
   const [brushOpacity, setBrushOpacity] = useState(1);
   const [lines, setLines] = useState<LineData[]>([]);
@@ -220,8 +221,8 @@ const HomePage = () => {
         <>
           <ToolSelectPanel setTool={setTool} tool={tool} />
           <DrawControlPanel
-            setColor={(color) => handleDrawingPropertyChange('color', color)}
-            color={color}
+            // setColor={(color) => handleDrawingPropertyChange('color', color)}
+            // color={color}
             setBrushRadius={(radius) => handleDrawingPropertyChange('brushRadius', radius)}
             brushRadius={brushRadius}
             setBrushOpacity={(opacity) => handleDrawingPropertyChange('brushOpacity', opacity)}
