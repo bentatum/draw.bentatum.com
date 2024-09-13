@@ -22,21 +22,26 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ setColor, color }) => {
 
   return (
     <div className="flex items-center gap-1.5 mt-1">
-      {presetColors.map(({ name, hex }) => (
-        <ControlButton
-          key={name}
-          selected={color === hex}
-          className={clsx({
-            'bg-black dark:bg-white': name === 'white' || name === 'black',
-            'bg-red-500': name === 'red',
-            'bg-green-500': name === 'green',
-            'bg-blue-500': name   === 'blue',
-            'bg-yellow-500': name === 'yellow',
-            'bg-purple-500': name === 'purple',
-          })}
-          onClick={() => setColor(hex)}
-        />
-      ))}
+      {presetColors.map(({ name, hex }) => {
+        const colorClassName = clsx({
+          'bg-black dark:bg-white': name === 'white' || name === 'black',
+          'bg-red-500': name === 'red',
+          'bg-green-500': name === 'green',
+          'bg-blue-500': name   === 'blue',
+          'bg-yellow-500': name === 'yellow',
+          'bg-purple-500': name === 'purple',
+        });
+        
+        return (
+          <ControlButton
+            key={name}
+            selected={color === hex}
+            selectedClassName={colorClassName}
+            className={colorClassName}
+            onClick={() => setColor(hex)}
+          />
+        );
+      })}
     </div>
   );
 };

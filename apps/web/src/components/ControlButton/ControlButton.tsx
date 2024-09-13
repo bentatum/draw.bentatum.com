@@ -6,10 +6,17 @@ export interface ControlButtonProps extends ComponentPropsWithoutRef<"button"> {
   selected?: boolean;
   children?: React.ReactNode;
   className?: string;
-  selectedClassName?: string;
+  selectedClassName?: string | null;
 }
 
-const ControlButton: React.FC<ControlButtonProps> = ({ onClick, selected, children, className, selectedClassName, ...props }) => {
+const ControlButton: React.FC<ControlButtonProps> = ({
+  onClick,
+  selected,
+  children,
+  className,
+  selectedClassName = 'bg-gray-300 dark:bg-gray-600',
+  ...props
+}) => {
   return (
     <button
       className={clsx(
@@ -17,9 +24,11 @@ const ControlButton: React.FC<ControlButtonProps> = ({ onClick, selected, childr
         {
           "h-9 w-9": !className?.match(/\bh-|\bw-/),
           "ring-1 ring-blue-400": selected,
+          'bg-gray-100 dark:bg-gray-900': !selected && !className?.match(/bg-/),
+          'active:bg-gray-200 dark:active:bg-gray-700 focus:bg-gray-300 dark:focus:bg-gray-600': !className?.match(/bg-/),
         },
         className,
-        selected && (selectedClassName ?? 'bg-gray-100 dark:bg-gray-900')
+        selected && selectedClassName
       )}
       onClick={onClick}
       {...props}
