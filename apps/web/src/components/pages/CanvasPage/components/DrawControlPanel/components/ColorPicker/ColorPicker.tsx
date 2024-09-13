@@ -1,16 +1,16 @@
 import ControlButton from "@/components/ControlButton";
+import useBrushColor from "@/components/pages/CanvasPage/lib/useBrushColor";
 import clsx from "clsx";
 import { useTheme } from "next-themes";
 
 interface ColorPickerProps {
-  setColor: (color: string) => void;
-  color: string;
   onColorChange?: () => void;
 }
 
-const ColorPicker: React.FC<ColorPickerProps> = ({ setColor, color, onColorChange }) => {
+const ColorPicker: React.FC<ColorPickerProps> = ({ onColorChange }) => {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
+  const [color, setColor] = useBrushColor();
 
   const presetColors = [
     { name: isDarkMode ? "white" : "black", hex: isDarkMode ? "#FFFFFF" : "#000000" },
@@ -40,6 +40,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ setColor, color, onColorChang
             selectedClassName={colorClassName}
             className={colorClassName}
             onClick={() => {
+              console.log('color changed', hex);
               setColor(hex);
               onColorChange?.();
             }}

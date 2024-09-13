@@ -17,7 +17,7 @@ export interface DrawControlPanelProps {
 }
 
 const DrawControlPanel: FC<DrawControlPanelProps> = ({ setBrushRadius, brushRadius, setBrushOpacity, brushOpacity }) => {
-  const [color, setColor] = useBrushColor();
+  const [color] = useBrushColor();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -41,7 +41,7 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setBrushRadius, brushRadi
             <a href="https://github.com/bentatum/draw.bentatum.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 dark:text-blue-400"><span className="inline-flex items-center gap-1"><GithubIcon className="w-3 h-3 inline-block" /> Github</span></a>
           </div>
           <div className="p-3 flex flex-col gap-3">
-            <ColorPicker setColor={setColor} color={color} onColorChange={handlePanelClose} />
+            <ColorPicker onColorChange={handlePanelClose} />
             <StrokeWidthButtons setBrushRadius={setBrushRadius} brushRadius={brushRadius} onStrokeWidthChange={handlePanelClose} />
             <div className="mb-1.5">
               <input
