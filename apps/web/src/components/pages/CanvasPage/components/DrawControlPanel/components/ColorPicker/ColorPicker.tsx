@@ -1,16 +1,25 @@
 import ControlButton from "@/components/ControlButton";
 import useBrushColor from "@/components/pages/CanvasPage/lib/useBrushColor";
+import useCanvasTool from "@/components/pages/CanvasPage/lib/useCanvasTool";
 import clsx from "clsx";
 import { useTheme } from "next-themes";
+import { useEffect } from "react";
 
 interface ColorPickerProps {
   onColorChange?: () => void;
 }
 
 const ColorPicker: React.FC<ColorPickerProps> = ({ onColorChange }) => {
-  const { resolvedTheme } = useTheme();
+  const  { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
   const [color, setColor] = useBrushColor();
+  const [tool, setTool] = useCanvasTool();
+
+  useEffect(() => {
+    if (tool === "hand") {
+      setTool("pencil");
+    }
+  }, [color]);
 
   const presetColors = [
     { name: isDarkMode ? "white" : "black", hex: isDarkMode ? "#FFFFFF" : "#000000" },

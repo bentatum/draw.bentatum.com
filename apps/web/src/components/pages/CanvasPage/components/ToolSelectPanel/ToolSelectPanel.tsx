@@ -1,13 +1,12 @@
 import ControlButton from "@/components/ControlButton";
 import { PencilIcon, HandRaisedIcon } from "@heroicons/react/24/outline";
 import { FC } from "react";
+import useCanvasTool from "../../lib/useCanvasTool";
 
-export interface ToolSelectPanelProps {
-  setTool: (tool: string) => void;
-  tool: string;
-}
+export interface ToolSelectPanelProps {}
 
-const ToolSelectPanel: FC<ToolSelectPanelProps> = ({ setTool, tool }) => {
+const ToolSelectPanel: FC<ToolSelectPanelProps> = () => {
+  const [tool, setTool] = useCanvasTool();
   return (
     <div className="z-10 fixed bottom-4 right-4 flex items-center gap-2">
       <ControlButton className="h-12 w-12" onClick={() => setTool("pencil")} selected={tool === "pencil"}>

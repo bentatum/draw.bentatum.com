@@ -1,15 +1,25 @@
 import ControlButton from "@/components/ControlButton";
+import useBrushRadius from "@/components/pages/CanvasPage/lib/useBrushRadius";
+import useCanvasTool from "@/components/pages/CanvasPage/lib/useCanvasTool";
 import clsx from "clsx";
+import { useEffect } from "react";
 
 export interface StrokeWidthButtonsProps {
-  setBrushRadius: (radius: number) => void;
-  brushRadius: number;
-  onStrokeWidthChange?: () => void; // Add this line
+  onStrokeWidthChange?: () => void;
 }
 
 const strokeWidths = [4, 17, 32, 47, 62, 75];
 
-const StrokeWidthButtons: React.FC<StrokeWidthButtonsProps> = ({ setBrushRadius, brushRadius, onStrokeWidthChange }) => {
+const StrokeWidthButtons: React.FC<StrokeWidthButtonsProps> = ({ onStrokeWidthChange }) => {
+  const [brushRadius, setBrushRadius] = useBrushRadius();
+  const [tool, setTool] = useCanvasTool();
+
+  useEffect(() => {
+    if (tool === "hand") {
+      setTool("pencil");
+    }
+  }, [brushRadius]);
+
   return (
     <div className="flex items-center gap-1.5 mt-1">
       {strokeWidths.map((width, index) => {

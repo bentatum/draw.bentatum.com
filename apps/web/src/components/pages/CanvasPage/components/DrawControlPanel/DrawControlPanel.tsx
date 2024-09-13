@@ -6,18 +6,11 @@ import ControlButton from "@/components/ControlButton";
 import useMediaQuery from "@/lib/useMediaQuery";
 import GithubIcon from "@/components/icons/GithubIcon";
 import Panel from "@/components/Panel/Panel";
-import clsx from "clsx";
-import useBrushColor from "../../lib/useBrushColor";
+import OpacitySlider from "./components/OpacitySlider";
 
-export interface DrawControlPanelProps {
-  setBrushRadius: (radius: number) => void;
-  brushRadius: number;
-  setBrushOpacity: (opacity: number) => void;
-  brushOpacity: number;
-}
+export interface DrawControlPanelProps {}
 
-const DrawControlPanel: FC<DrawControlPanelProps> = ({ setBrushRadius, brushRadius, setBrushOpacity, brushOpacity }) => {
-  const [color] = useBrushColor();
+const DrawControlPanel: FC<DrawControlPanelProps> = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -42,35 +35,9 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setBrushRadius, brushRadi
           </div>
           <div className="p-3 flex flex-col gap-3">
             <ColorPicker onColorChange={handlePanelClose} />
-            <StrokeWidthButtons setBrushRadius={setBrushRadius} brushRadius={brushRadius} onStrokeWidthChange={handlePanelClose} />
-            <div className="mb-1.5">
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={brushOpacity}
-                className={clsx(
-                  "w-full appearance-none h-2 rounded-full",
-                  "bg-gradient-to-r from-transparent",
-                  {
-                    'to-black dark:to-white': color === '#000000' || color === '#FFFFFF',
-                    'to-red-500': color === '#EF4444',
-                    'to-green-500': color === '#10B981',
-                    'to-blue-500': color === '#3B82F6',
-                    'to-yellow-500': color === '#F59E0B',
-                    'to-purple-500': color === '#8B5CF6',
-                  }
-                )}
-                onChange={(e) => setBrushOpacity(parseFloat(e.target.value))}
-                style={{
-                  WebkitAppearance: 'none',
-                  outline: 'none',
-                }}
-              />
-            </div>
+            <StrokeWidthButtons onStrokeWidthChange={handlePanelClose} />
+            <OpacitySlider />
           </div>
-
         </Panel>
       )}
     </div>

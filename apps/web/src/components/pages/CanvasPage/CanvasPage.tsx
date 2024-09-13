@@ -12,20 +12,24 @@ import ToolSelectPanel from "./components/ToolSelectPanel";
 import useLines from "./lib/useLines";
 import fetcher from "@/lib/fetcher";
 import DarkModeControlButton from "@/components/DarkModeControlButton";
-import useLocalStorage from "@/lib/useLocalStorage";
 import { useZoom } from "./lib/useZoom";
 import { useDefaultLineColor } from "./lib/useDefaultLineColor";
 import useScale from "./lib/useScale";
 import useBrushColor from "./lib/useBrushColor";
+import useBrushRadius from "./lib/useBrushRadius";
+import useBrushOpacity from "./lib/useBrushOpacity";
+import useCanvasTool from "./lib/useCanvasTool";
 
 const HomePage = () => {
   const { lines: fetchedLines } = useLines();
-  const [color, setColor] = useBrushColor();
-  const [brushRadius, setBrushRadius] = useLocalStorage("brushRadius", 4);
-  const [brushOpacity, setBrushOpacity] = useState(1);
   const [lines, setLines] = useState<LineData[]>([]);
+
   const [scale] = useScale();
-  const [tool, setTool] = useState("pencil");
+  const [color] = useBrushColor();
+  const [brushRadius] = useBrushRadius();
+  const [brushOpacity] = useBrushOpacity();
+  const [tool] = useCanvasTool();
+
   const isDrawing = useRef(false);
   const stageRef = useRef<Konva.Stage | null>(null);
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
@@ -199,18 +203,6 @@ const HomePage = () => {
     }
   }, [handleZoom]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleDrawingPropertyChange = useCallback((property: 'color' | 'brushRadius' | 'brushOpacity', value: any) => {
-    if (property === 'color') setColor(value);
-    if (property === 'brushRadius') setBrushRadius(value);
-    if (property === 'brushOpacity') setBrushOpacity(value);
-
-    // Switch to pencil tool if currently in hand tool
-    if (tool === 'hand') {
-      setTool('pencil');
-    }
-  }, [tool, setColor, setBrushRadius]);
-
   const getDefaultLineColor = useDefaultLineColor();
 
   return (
@@ -219,19 +211,11 @@ const HomePage = () => {
 
       {isStageReady && (
         <>
-          <ToolSelectPanel setTool={setTool} tool={tool} />
-          <DrawControlPanel
-            // setColor={(color) => handleDrawingPropertyChange('color', color)}
-            // color={color}
-            setBrushRadius={(radius) => handleDrawingPropertyChange('brushRadius', radius)}
-            brushRadius={brushRadius}
-            setBrushOpacity={(opacity) => handleDrawingPropertyChange('brushOpacity', opacity)}
-            brushOpacity={brushOpacity}
-          />
+          <ToolSelectPanel />
+          <DrawControlPanel />
           <ZoomControlPanel stageRef={stageRef} />
         </>
       )}
-
       <div
         className={clsx("h-screen w-screen", {
           "cursor-crosshair": tool === "pencil",
