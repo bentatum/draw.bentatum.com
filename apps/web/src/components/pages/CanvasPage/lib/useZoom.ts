@@ -1,7 +1,10 @@
 import { useCallback } from 'react';
 import Konva from 'konva';
+import useLocalStorage from '@/lib/useLocalStorage';
 
-export const useZoom = (stageRef: React.RefObject<Konva.Stage>, setScale: React.Dispatch<React.SetStateAction<number>>) => {
+export const useZoom = (stageRef: React.RefObject<Konva.Stage>) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_scale, setScale] = useLocalStorage("canvasScale", 1);
   const handleZoom = useCallback((newScale: number, pointer: { x: number; y: number } | null) => {
     const stage = stageRef.current;
     if (!stage || !pointer) return;
@@ -22,9 +25,6 @@ export const useZoom = (stageRef: React.RefObject<Konva.Stage>, setScale: React.
     stage.batchDraw();
 
     setScale(newScale);
-
-    // Save scale and position to localStorage
-    localStorage.setItem("canvasScale", newScale.toString());
     localStorage.setItem("canvasPosition", JSON.stringify(newPos));
   }, [stageRef, setScale]);
 

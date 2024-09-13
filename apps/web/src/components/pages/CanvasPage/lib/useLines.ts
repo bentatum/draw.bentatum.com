@@ -1,5 +1,5 @@
 import useSWR from 'swr';
-import fetcher from './fetcher';
+import fetcher from '@/lib/fetcher';
 import { LineData } from '@/types';
 
 const useLines = () => {

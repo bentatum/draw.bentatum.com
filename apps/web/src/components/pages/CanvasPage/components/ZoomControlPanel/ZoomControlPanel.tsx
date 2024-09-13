@@ -2,16 +2,16 @@ import ControlButton from "@/components/ControlButton";
 import { PlusIcon, MinusIcon } from "@heroicons/react/24/solid";
 import Konva from "konva";
 import { FC } from "react";
-import { useZoom } from "@/lib/useZoom";
+import { useZoom } from "../../lib/useZoom";
+import useScale from "../../lib/useScale";
 
 export interface ZoomControlPanelProps {
-  setScale: React.Dispatch<React.SetStateAction<number>>;
-  scale: number;
   stageRef: React.RefObject<Konva.Stage>;
 }
 
-const ZoomControlPanel: FC<ZoomControlPanelProps> = ({ setScale, scale, stageRef }) => {
-  const handleZoom = useZoom(stageRef, setScale);
+const ZoomControlPanel: FC<ZoomControlPanelProps> = ({ stageRef }) => {
+  const [scale] = useScale();
+  const handleZoom = useZoom(stageRef);
 
   const handleZoomButton = (zoomIn: boolean) => {
     const stage = stageRef.current;

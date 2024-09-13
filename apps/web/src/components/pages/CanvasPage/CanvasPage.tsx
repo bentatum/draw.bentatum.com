@@ -5,25 +5,25 @@ import { Stage, Layer, Line } from "react-konva";
 import useDimensions from "@/lib/useDimensions";
 import clsx from "clsx";
 import Konva from "konva";
-import { useTheme } from "next-themes";
 import DrawControlPanel from "./components/DrawControlPanel/DrawControlPanel";
 import ZoomControlPanel from "./components/ZoomControlPanel";
 import { LineData } from "@/types";
 import ToolSelectPanel from "./components/ToolSelectPanel";
-import useLines from "@/lib/useLines";
+import useLines from "./lib/useLines";
 import fetcher from "@/lib/fetcher";
 import DarkModeControlButton from "@/components/DarkModeControlButton";
 import useLocalStorage from "@/lib/useLocalStorage";
-import { useZoom } from "@/lib/useZoom";
+import { useZoom } from "./lib/useZoom";
+import { useDefaultLineColor } from "./lib/useDefaultLineColor";
+import useScale from "./lib/useScale";
 
 const HomePage = () => {
-  const { resolvedTheme } = useTheme();
   const { lines: fetchedLines } = useLines();
   const [color, setColor] = useLocalStorage("brushColor", "#000000");
   const [brushRadius, setBrushRadius] = useLocalStorage("brushRadius", 4);
   const [brushOpacity, setBrushOpacity] = useState(1);
   const [lines, setLines] = useState<LineData[]>([]);
-  const [scale, setScale] = useState(1);
+  const [scale] = useScale();
   const [tool, setTool] = useState("pencil");
   const isDrawing = useRef(false);
   const stageRef = useRef<Konva.Stage | null>(null);
@@ -34,7 +34,7 @@ const HomePage = () => {
   const [newLines, setNewLines] = useState<LineData[]>([]);
   const [isStageReady, setIsStageReady] = useState(false);
 
-  const handleZoom = useZoom(stageRef, setScale);
+  const handleZoom = useZoom(stageRef);
 
   const setStageRef = (node: Konva.Stage | null) => {
     if (node) {
@@ -52,26 +52,13 @@ const HomePage = () => {
   useEffect(() => {
     if (!isStageReady) return;
 
-    const savedScale = localStorage.getItem("canvasScale");
     const savedPosition = localStorage.getItem("canvasPosition");
-
-    if (savedScale && stageRef.current) {
-      const scale = parseFloat(savedScale);
-      stageRef.current.scale({ x: scale, y: scale });
-      setScale(scale);
-    }
 
     if (savedPosition && stageRef.current) {
       const position = JSON.parse(savedPosition);
       stageRef.current.position(position);
     }
   }, [isStageReady]);
-
-  useEffect(() => {
-    if (!isStageReady) return;
-    // Save scale to localStorage whenever it changes
-    localStorage.setItem("canvasScale", scale.toString());
-  }, [scale, isStageReady]);
 
   const saveLines = useCallback(async (lines: LineData[]) => {
     try {
@@ -223,32 +210,26 @@ const HomePage = () => {
     }
   }, [tool, setColor, setBrushRadius]);
 
-  const getAdjustedColor = useCallback((lineColor: string) => {
-    if (resolvedTheme === 'dark') {
-      return lineColor === '#000000' || lineColor === '#FFFFFF' ? '#FFFFFF' : lineColor;
-    } else {
-      return lineColor === '#000000' || lineColor === '#FFFFFF' ? '#000000' : lineColor;
-    }
-  }, [resolvedTheme]);
+  const getDefaultLineColor = useDefaultLineColor();
 
   return (
     <div>
       <DarkModeControlButton className="fixed top-4 left-4 z-10" />
 
-      {isStageReady && (<>
-        <ToolSelectPanel setTool={setTool} tool={tool} />
-        <DrawControlPanel
-          setColor={(color) => handleDrawingPropertyChange('color', color)}
-          color={color}
-          setBrushRadius={(radius) => handleDrawingPropertyChange('brushRadius', radius)}
-          brushRadius={brushRadius}
-          setBrushOpacity={(opacity) => handleDrawingPropertyChange('brushOpacity', opacity)}
-          brushOpacity={brushOpacity}
-        />
-        <ZoomControlPanel setScale={setScale} scale={scale} stageRef={stageRef} />
-      </>)}
-
-      
+      {isStageReady && (
+        <>
+          <ToolSelectPanel setTool={setTool} tool={tool} />
+          <DrawControlPanel
+            setColor={(color) => handleDrawingPropertyChange('color', color)}
+            color={color}
+            setBrushRadius={(radius) => handleDrawingPropertyChange('brushRadius', radius)}
+            brushRadius={brushRadius}
+            setBrushOpacity={(opacity) => handleDrawingPropertyChange('brushOpacity', opacity)}
+            brushOpacity={brushOpacity}
+          />
+          <ZoomControlPanel stageRef={stageRef} />
+        </>
+      )}
 
       <div
         className={clsx("h-screen w-screen", {
@@ -280,7 +261,7 @@ const HomePage = () => {
                 <Line
                   key={i}
                   points={line.points}
-                  stroke={getAdjustedColor(line.color)}
+                  stroke={getDefaultLineColor(line.color)}
                   strokeWidth={line.brushRadius}
                   opacity={line.brushOpacity}
                   tension={0.5}
