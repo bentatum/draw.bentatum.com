@@ -21,9 +21,15 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrush
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  const handlePanelClose = () => {
+    if (isMobile) {
+      setIsCollapsed(true);
+    }
+  };
+
   return (
-    <div className="z-10 fixed top-4 left-4">
-      <div className="md:hidden mb-2">
+    <div className="z-10 fixed top-4 right-4">
+      <div className="md:hidden mb-2 flex justify-end">
         <ControlButton onClick={() => setIsCollapsed(!isCollapsed)} className="h-12 w-12">
           {isCollapsed ? <Bars2Icon className="w-7 h-7" /> : <XMarkIcon className="w-7 h-7" />}
         </ControlButton>
@@ -35,8 +41,8 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrush
             <a href="https://github.com/bentatum/draw.bentatum.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 dark:text-blue-400"><span className="inline-flex items-center gap-1"><GithubIcon className="w-3 h-3 inline-block" /> Github</span></a>
           </div>
           <div className="p-3 flex flex-col gap-3">
-            <ColorPicker setColor={setColor} color={color} />
-            <StrokeWidthButtons setBrushRadius={setBrushRadius} brushRadius={brushRadius} />
+            <ColorPicker setColor={setColor} color={color} onColorChange={handlePanelClose} />
+            <StrokeWidthButtons setBrushRadius={setBrushRadius} brushRadius={brushRadius} onStrokeWidthChange={handlePanelClose} />
             <div className="mb-1.5">
               <input
                 type="range"

@@ -97,12 +97,10 @@ app.get('/connections/:id', async (req, res) => {
     .eq('user_id', id)
     .single();
 
-  if (error) {
-    return res.status(500).json({ error: error.message });
-  }
-
-  if (!data) {
-    return res.status(404).json({ error: 'Connection not found' });
+  if (!data || error) {
+    const statusCode = error?.code === 'PGRST116' ? 404 : 500;
+    const errorMessage = error?.code === 'PGRST116' ? 'Connection not found' : error?.message;
+    return res.status(statusCode).json({ error: errorMessage });
   }
 
   res.json(data);

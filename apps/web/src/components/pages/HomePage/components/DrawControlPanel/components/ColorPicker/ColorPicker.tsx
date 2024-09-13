@@ -5,9 +5,10 @@ import { useTheme } from "next-themes";
 interface ColorPickerProps {
   setColor: (color: string) => void;
   color: string;
+  onColorChange?: () => void;
 }
 
-const ColorPicker: React.FC<ColorPickerProps> = ({ setColor, color }) => {
+const ColorPicker: React.FC<ColorPickerProps> = ({ setColor, color, onColorChange }) => {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
 
@@ -38,7 +39,10 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ setColor, color }) => {
             selected={color === hex}
             selectedClassName={colorClassName}
             className={colorClassName}
-            onClick={() => setColor(hex)}
+            onClick={() => {
+              setColor(hex);
+              onColorChange?.();
+            }}
           />
         );
       })}

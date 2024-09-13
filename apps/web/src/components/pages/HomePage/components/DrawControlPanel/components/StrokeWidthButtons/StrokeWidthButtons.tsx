@@ -4,11 +4,12 @@ import clsx from "clsx";
 export interface StrokeWidthButtonsProps {
   setBrushRadius: (radius: number) => void;
   brushRadius: number;
+  onStrokeWidthChange?: () => void; // Add this line
 }
 
 const strokeWidths = [4, 17, 32, 47, 62, 75];
 
-const StrokeWidthButtons: React.FC<StrokeWidthButtonsProps> = ({ setBrushRadius, brushRadius }) => {
+const StrokeWidthButtons: React.FC<StrokeWidthButtonsProps> = ({ setBrushRadius, brushRadius, onStrokeWidthChange }) => {
   return (
     <div className="flex items-center gap-1.5 mt-1">
       {strokeWidths.map((width, index) => {
@@ -16,7 +17,10 @@ const StrokeWidthButtons: React.FC<StrokeWidthButtonsProps> = ({ setBrushRadius,
           <ControlButton
             key={width}
             selected={brushRadius === width}
-            onClick={() => setBrushRadius(width)}
+            onClick={() => {
+              setBrushRadius(width);
+              onStrokeWidthChange?.();
+            }}
           >
             <div className={clsx("w-full rounded-full bg-gray-800 dark:bg-gray-200", {
               "h-px": index === 0,

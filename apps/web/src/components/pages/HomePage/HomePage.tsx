@@ -12,9 +12,9 @@ import { LineData } from "@/types";
 import ToolSelectPanel from "./components/ToolSelectPanel";
 import useLines from "@/lib/useLines";
 import fetcher from "@/lib/fetcher";
-import ConnectedUsersPanel from "./components/ConnectedUsersPanel";
 import DarkModeControlButton from "@/components/DarkModeControlButton";
 import useLocalStorage from "@/lib/useLocalStorage";
+import { useZoom } from "@/lib/useZoom";
 
 const HomePage = () => {
   const { resolvedTheme } = useTheme();
@@ -33,6 +33,8 @@ const HomePage = () => {
   const { width, height, dimensionsReady } = useDimensions(stageContainerRef);
   const [newLines, setNewLines] = useState<LineData[]>([]);
   const [isStageReady, setIsStageReady] = useState(false);
+
+  const handleZoom = useZoom(stageRef, setScale);
 
   const setStageRef = (node: Konva.Stage | null) => {
     if (node) {
@@ -165,26 +167,14 @@ const HomePage = () => {
     e.evt.preventDefault();
     const stage = stageRef.current;
     if (!stage) return;
+
     const oldScale = stage.scaleX();
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
-    const mousePointTo = {
-      x: (pointer.x - stage.x()) / oldScale,
-      y: (pointer.y - stage.y()) / oldScale,
-    };
-    const newScale = e.evt.deltaY > 0 ? oldScale / 1.1 : oldScale * 1.1;
-    stage.scale({ x: newScale, y: newScale });
-    const newPos = {
-      x: pointer.x - mousePointTo.x * newScale,
-      y: pointer.y - mousePointTo.y * newScale,
-    };
-    stage.position(newPos);
-    stage.batchDraw();
-    setScale(newScale);
 
-    // Save position to localStorage
-    localStorage.setItem("canvasPosition", JSON.stringify(newPos));
-  }, []);
+    const newScale = e.evt.deltaY > 0 ? oldScale / 1.1 : oldScale * 1.1;
+    handleZoom(newScale, pointer);
+  }, [handleZoom]);
 
   const handlePinch = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
     e.evt.preventDefault();
@@ -207,35 +197,19 @@ const HomePage = () => {
         return;
       }
 
-      const oldScale = stage.scaleX();
-      const newScale = oldScale * (dist / stage.attrs.lastDist);
-
-      const midpoint = {
+      const pointTo = {
         x: (touch1.clientX + touch2.clientX) / 2,
         y: (touch1.clientY + touch2.clientY) / 2,
       };
 
-      const mousePointTo = {
-        x: (midpoint.x - stage.x()) / oldScale,
-        y: (midpoint.y - stage.y()) / oldScale,
-      };
+      const oldScale = stage.scaleX();
+      const newScale = oldScale * (dist / stage.attrs.lastDist);
 
-      const newPos = {
-        x: midpoint.x - mousePointTo.x * newScale,
-        y: midpoint.y - mousePointTo.y * newScale,
-      };
+      handleZoom(newScale, pointTo);
 
-      stage.scale({ x: newScale, y: newScale });
-      stage.position(newPos);
-      stage.batchDraw();
-
-      setScale(newScale);
       stage.attrs.lastDist = dist;
-
-      localStorage.setItem("canvasScale", newScale.toString());
-      localStorage.setItem("canvasPosition", JSON.stringify(newPos));
     }
-  }, []);
+  }, [handleZoom]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDrawingPropertyChange = useCallback((property: 'color' | 'brushRadius' | 'brushOpacity', value: any) => {
@@ -259,6 +233,8 @@ const HomePage = () => {
 
   return (
     <div>
+      <DarkModeControlButton className="fixed top-4 left-4 z-10" />
+
       {isStageReady && (<>
         <ToolSelectPanel setTool={setTool} tool={tool} />
         <DrawControlPanel
@@ -271,9 +247,8 @@ const HomePage = () => {
         />
         <ZoomControlPanel setScale={setScale} scale={scale} stageRef={stageRef} />
       </>)}
-      <ConnectedUsersPanel />
 
-      <DarkModeControlButton className="fixed top-4 right-4 z-10" />
+      
 
       <div
         className={clsx("h-screen w-screen", {

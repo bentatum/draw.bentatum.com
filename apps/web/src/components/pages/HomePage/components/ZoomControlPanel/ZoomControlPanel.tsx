@@ -1,8 +1,8 @@
 import ControlButton from "@/components/ControlButton";
-import { PlusIcon } from "@heroicons/react/24/solid";
-import { MinusIcon } from "@heroicons/react/24/solid";
+import { PlusIcon, MinusIcon } from "@heroicons/react/24/solid";
 import Konva from "konva";
 import { FC } from "react";
+import { useZoom } from "@/lib/useZoom";
 
 export interface ZoomControlPanelProps {
   setScale: React.Dispatch<React.SetStateAction<number>>;
@@ -11,41 +11,26 @@ export interface ZoomControlPanelProps {
 }
 
 const ZoomControlPanel: FC<ZoomControlPanelProps> = ({ setScale, scale, stageRef }) => {
-  const handleZoom = (zoomIn: boolean) => {
-    setScale((prevScale: number) => {
-      const newScale = zoomIn ? Math.min(prevScale * 1.1, 30) : Math.max(prevScale / 1.1, 0.1);
-      const stage = stageRef.current;
-      if (!stage) return prevScale;
-      const pointer = stage.getPointerPosition();
+  const handleZoom = useZoom(stageRef, setScale);
 
-      if (!pointer) return prevScale;
+  const handleZoomButton = (zoomIn: boolean) => {
+    const stage = stageRef.current;
+    if (!stage) return;
 
-      const mousePointTo = {
-        x: (pointer.x - stage.x()) / prevScale,
-        y: (pointer.y - stage.y()) / prevScale,
-      };
+    const newScale = zoomIn ? scale * 1.1 : scale / 1.1;
+    const pointer = stage.getPointerPosition() || { x: stage.width() / 2, y: stage.height() / 2 };
 
-      stage.scale({ x: newScale, y: newScale });
-
-      const newPos = {
-        x: pointer.x - mousePointTo.x * newScale,
-        y: pointer.y - mousePointTo.y * newScale,
-      };
-      stage.position(newPos);
-      stage.batchDraw();
-
-      return newScale;
-    });
+    handleZoom(newScale, pointer);
   };
 
-  const handleZoomIn = () => handleZoom(true);
-  const handleZoomOut = () => handleZoom(false);
+  const handleZoomIn = () => handleZoomButton(true);
+  const handleZoomOut = () => handleZoomButton(false);
 
   return (
     <div className="z-10 fixed bottom-4 left-4 flex items-center gap-2">
-      <ControlButton className="h-12 w-12" onClick={handleZoomOut}><MinusIcon className="w-7 h-7" /></ControlButton>
+      <ControlButton className="h-12 w-12" onClick={handleZoomOut}><MinusIcon className="w-6 h-6" /></ControlButton>
       <span className="leading-none">{Math.round(scale * 100)}%</span>
-      <ControlButton className="h-12 w-12" onClick={handleZoomIn}><PlusIcon className="w-7 h-7" /></ControlButton>
+      <ControlButton className="h-12 w-12" onClick={handleZoomIn}><PlusIcon className="w-6 h-6" /></ControlButton>
     </div>
   )
 };

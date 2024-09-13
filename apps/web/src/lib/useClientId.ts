@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import fetcher from './fetcher';
 import { API_URL } from '@/config';
+import useLocalStorage from './useLocalStorage';
 
 const CLIENT_ID_KEY = 'client_id';
 
 const useClientId = () => {
-  const [clientId, setClientId] = useState<string | null>(null);
+  const [clientId, setClientId] = useLocalStorage<string | null>(CLIENT_ID_KEY, null);
 
   useEffect(() => {
     const initializeClientId = async () => {
@@ -15,7 +16,6 @@ const useClientId = () => {
         try {
           const response = await fetch(`${API_URL}/connections/${storedClientId}`);
           if (response.ok) {
-            setClientId(storedClientId);
             return;
           } else {
             localStorage.removeItem(CLIENT_ID_KEY);
@@ -33,11 +33,9 @@ const useClientId = () => {
           method: 'POST',
           body: JSON.stringify({ user_id: storedClientId }),
         });
-        localStorage.setItem(CLIENT_ID_KEY, storedClientId);
         setClientId(storedClientId);
       } catch (error) {
         console.error('Error creating connection:', error);
-        setClientId(null);
       }
     };
 
