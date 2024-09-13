@@ -21,8 +21,7 @@ import useBrushOpacity from "./lib/useBrushOpacity";
 import useCanvasTool from "./lib/useCanvasTool";
 
 const HomePage = () => {
-  const { lines: fetchedLines } = useLines();
-  const [lines, setLines] = useState<LineData[]>([]);
+  const [lines, setLines] = useLines();
 
   const [scale] = useScale();
   const [color] = useBrushColor();
@@ -48,11 +47,7 @@ const HomePage = () => {
     }
   };
 
-  useEffect(() => {
-    if (fetchedLines) {
-      setLines(fetchedLines);
-    }
-  }, [fetchedLines]);
+ 
 
   useEffect(() => {
     if (!isStageReady) return;

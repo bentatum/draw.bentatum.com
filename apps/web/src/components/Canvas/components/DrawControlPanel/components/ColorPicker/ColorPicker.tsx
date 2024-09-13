@@ -1,6 +1,6 @@
 import ControlButton from "@/components/ControlButton";
-import useBrushColor from "@/components/pages/CanvasPage/lib/useBrushColor";
-import useCanvasTool from "@/components/pages/CanvasPage/lib/useCanvasTool";
+import useBrushColor from "@/components/Canvas/lib/useBrushColor";
+import useCanvasTool from "@/components/Canvas/lib/useCanvasTool";
 import clsx from "clsx";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";

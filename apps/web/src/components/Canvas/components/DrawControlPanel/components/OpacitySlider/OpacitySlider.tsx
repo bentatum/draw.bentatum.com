@@ -1,6 +1,6 @@
-import useBrushColor from "@/components/pages/CanvasPage/lib/useBrushColor";
-import useBrushOpacity from "@/components/pages/CanvasPage/lib/useBrushOpacity";
-import useCanvasTool from "@/components/pages/CanvasPage/lib/useCanvasTool";
+import useBrushColor from "@/components/Canvas/lib/useBrushColor";
+import useBrushOpacity from "@/components/Canvas/lib/useBrushOpacity";
+import useCanvasTool from "@/components/Canvas/lib/useCanvasTool";
 import clsx from "clsx";
 import { useEffect } from "react";
 

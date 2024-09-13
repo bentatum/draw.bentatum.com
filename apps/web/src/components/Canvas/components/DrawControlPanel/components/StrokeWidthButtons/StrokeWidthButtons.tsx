@@ -1,6 +1,6 @@
 import ControlButton from "@/components/ControlButton";
-import useBrushRadius from "@/components/pages/CanvasPage/lib/useBrushRadius";
-import useCanvasTool from "@/components/pages/CanvasPage/lib/useCanvasTool";
+import useBrushRadius from "@/components/Canvas/lib/useBrushRadius";
+import useCanvasTool from "@/components/Canvas/lib/useCanvasTool";
 import clsx from "clsx";
 import { useEffect } from "react";
 
