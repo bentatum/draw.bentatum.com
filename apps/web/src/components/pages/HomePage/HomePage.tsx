@@ -250,7 +250,11 @@ const HomePage = () => {
   }, [tool, setColor, setBrushRadius]);
 
   const getAdjustedColor = useCallback((lineColor: string) => {
-    return resolvedTheme === 'dark' && lineColor === '#000000' ? '#FFFFFF' : lineColor;
+    if (resolvedTheme === 'dark') {
+      return lineColor === '#000000' || lineColor === '#FFFFFF' ? '#FFFFFF' : lineColor;
+    } else {
+      return lineColor === '#000000' || lineColor === '#FFFFFF' ? '#000000' : lineColor;
+    }
   }, [resolvedTheme]);
 
   return (
