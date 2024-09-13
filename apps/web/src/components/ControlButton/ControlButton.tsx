@@ -19,7 +19,7 @@ const ControlButton: React.FC<ControlButtonProps> = ({ onClick, selected, childr
           "ring-1 ring-blue-400": selected,
         },
         className,
-        selected && selectedClassName ?? 'bg-gray-100 dark:bg-gray-900'
+        selected && (selectedClassName ?? 'bg-gray-100 dark:bg-gray-900')
       )}
       onClick={onClick}
       {...props}

@@ -32,7 +32,7 @@ const DrawControlPanel: FC<DrawControlPanelProps> = ({ setColor, color, setBrush
         <Panel className="flex flex-col p-0">
           <div className="px-4 min-h-[3rem] flex items-center justify-between text-sm gap-2 border-b border-gray-200 dark:border-gray-700">
             <p>Made by Ben Tatum</p>
-            <a href="https://github.com/bentatum/draw.bentatum.com" target="_blank" rel="noopener noreferrer" className="text-blue-500"><span className="inline-flex items-center gap-1"><GithubIcon className="w-3 h-3 inline-block" /> Github</span></a>
+            <a href="https://github.com/bentatum/draw.bentatum.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 dark:text-blue-400"><span className="inline-flex items-center gap-1"><GithubIcon className="w-3 h-3 inline-block" /> Github</span></a>
           </div>
           <div className="p-3 flex flex-col gap-3">
             <ColorPicker setColor={setColor} color={color} />
