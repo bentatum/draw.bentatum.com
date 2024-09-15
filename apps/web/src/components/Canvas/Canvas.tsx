@@ -18,11 +18,11 @@ import useStartHandlers from "./lib/useStartHandlers";
 import useEndHandlers from "./lib/useEndHandlers";
 import useMoveHandlers from "./lib/useMoveHandlers";
 import useZoomHandlers from "./lib/useZoomHandlers";
-import useRelativePointerPosition from "./lib/useRelativePointerPosition";
 
 const Canva = () => {
   const [lines, setLines] = useLines();
   const [newLines, setNewLines] = useState<LineData[]>([]);
+  const getDefaultLineColor = useDefaultLineColor();
 
   const [scale] = useScale();
   const [tool] = useCanvasTool();
@@ -54,9 +54,6 @@ const Canva = () => {
     dragStartPos,
     lastPointerPosition
   });
-
-
-  const getDefaultLineColor = useDefaultLineColor();
 
   return (
     <div>
