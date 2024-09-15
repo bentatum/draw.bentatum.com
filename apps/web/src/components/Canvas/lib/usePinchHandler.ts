@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import Konva from "konva";
-import { useZoom } from "./useZoom";
+import { useZoom } from "./useZoomHandlers";
 
 const usePinchHandler = (stageRef: React.RefObject<Konva.Stage>) => {
   const isPinching = useRef(false);

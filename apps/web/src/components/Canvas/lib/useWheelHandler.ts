@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import Konva from "konva";
-import { useZoom } from "./useZoom";
+import { useZoom } from "./useZoomHandlers";
 
 const useWheelHandler = (stageRef: React.RefObject<Konva.Stage>) => {
   const handleZoom = useZoom(stageRef);

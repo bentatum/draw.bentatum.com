@@ -5,16 +5,14 @@ import useCanvasTool from "./useCanvasTool";
 import useBrushColor from "./useBrushColor";
 import useBrushRadius from "./useBrushRadius";
 import useBrushOpacity from "./useBrushOpacity";
+import useRelativePointerPosition from "./useRelativePointerPosition";
 
 interface UseStartHandlersProps {
-  getRelativePointerPosition: (node: Konva.Node) => { x: number; y: number },
   setLines: React.Dispatch<React.SetStateAction<LineData[]>>,
   setNewLines: React.Dispatch<React.SetStateAction<LineData[]>>
 }
 
-
 const useStartHandlers = ({
-  getRelativePointerPosition,
   setLines,
   setNewLines
 }: UseStartHandlersProps) => {
@@ -25,6 +23,7 @@ const useStartHandlers = ({
   const isDrawing = useRef(false);
   const dragStartPos = useRef<{ x: number; y: number } | null>(null);
   const lastPointerPosition = useRef<{ x: number; y: number } | null>(null);
+  const getRelativePointerPosition = useRelativePointerPosition();
 
   const handleStart = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>, tool: string) => {

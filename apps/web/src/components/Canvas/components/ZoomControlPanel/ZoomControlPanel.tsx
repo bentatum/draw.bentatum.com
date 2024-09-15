@@ -2,7 +2,7 @@ import ControlButton from "@/components/ControlButton";
 import { PlusIcon, MinusIcon } from "@heroicons/react/24/solid";
 import Konva from "konva";
 import { FC } from "react";
-import { useZoom } from "../../lib/useZoom";
+import { useZoom } from "../../lib/useZoomHandlers";
 import useScale from "../../lib/useScale";
 
 export interface ZoomControlPanelProps {
