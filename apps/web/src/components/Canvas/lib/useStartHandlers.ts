@@ -6,7 +6,7 @@ import useBrushColor from "./useBrushColor";
 import useBrushRadius from "./useBrushRadius";
 import useBrushOpacity from "./useBrushOpacity";
 
-const useCanvasStartHandler = (
+const useStartHandlers = (
   getRelativePointerPosition: (node: Konva.Node) => { x: number; y: number },
   setLines: React.Dispatch<React.SetStateAction<LineData[]>>,
   setNewLines: React.Dispatch<React.SetStateAction<LineData[]>>
@@ -50,4 +50,4 @@ const useCanvasStartHandler = (
   return { handleMouseDown, handleTouchStart, isDrawing, dragStartPos, lastPointerPosition };
 };
 
-export default useCanvasStartHandler;
+export default useStartHandlers;

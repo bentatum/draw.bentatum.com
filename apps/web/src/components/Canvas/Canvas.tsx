@@ -14,12 +14,13 @@ import { useDefaultLineColor } from "./lib/useDefaultLineColor";
 import useScale from "./lib/useScale";
 import useCanvasTool from "./lib/useCanvasTool";
 import useCanvasPosition from "./lib/useCanvasPosition";
-import useCanvasStartHandler from "./lib/useCanvasStartHandler";
 import useStageRef from "./lib/useStageRef";
 import useStageContainerRef from "./lib/useStageContainerRef";
 import useLinesMutation from "./lib/useLinesMutation";
 import usePinchHandler from "./lib/usePinchHandler";
 import useWheelHandler from "./lib/useWheelHandler";
+import useStartHandlers  from "./lib/useStartHandlers";
+import useEndHandlers from "./lib/useEndHandlers";
 
 const Canva = () => {
   const [lines, setLines] = useLines();
@@ -27,19 +28,13 @@ const Canva = () => {
 
   const [scale] = useScale();
   const [tool] = useCanvasTool();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [position, setPosition] = useCanvasPosition();
 
   const { ref: stageRef, ready: stageReady, setRef: setStageRef } = useStageRef();
   const { ref: stageContainerRef, ready: stageContainerReady, width, height } = useStageContainerRef();
 
   const { handlePinch, isPinching } = usePinchHandler(stageRef);
-
-  useEffect(() => {
-    if (stageReady && position && stageRef.current) {
-      stageRef.current.position(position);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stageReady]);
 
   const saveLines = useLinesMutation();
 
@@ -52,7 +47,7 @@ const Canva = () => {
     return relativePos;
   }, []);
 
-  const { handleMouseDown, handleTouchStart, isDrawing, dragStartPos, lastPointerPosition } = useCanvasStartHandler(getRelativePointerPosition, setLines, setNewLines);
+  const { handleMouseDown, handleTouchStart, isDrawing, dragStartPos, lastPointerPosition } = useStartHandlers(getRelativePointerPosition, setLines, setNewLines);
 
   const handleMove = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
     const stage = e.target.getStage();
@@ -85,31 +80,7 @@ const Canva = () => {
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => handleMove(e);
   const handleTouchMove = (e: Konva.KonvaEventObject<TouchEvent>) => handleMove(e);
 
-  const handleEnd = useCallback(() => {
-    if (isDrawing.current) {
-      saveLines(newLines);
-      setNewLines([]); // Clear new lines after saving
-    }
-    isDrawing.current = false;
-    dragStartPos.current = null;
-    lastPointerPosition.current = null;
-
-    // Save final position to localStorage
-    if (stageRef.current) {
-      setPosition(stageRef.current.position());
-    }
-  }, [saveLines, newLines, setPosition]);
-
-  const handleMouseUp = handleEnd;
-  const handleTouchEnd = useCallback(() => {
-    handleEnd();
-    isPinching.current = false; // Reset pinching flag
-    if (stageRef.current) {
-      delete stageRef.current.attrs.lastDist;
-      delete stageRef.current.attrs.lastCenter;
-      delete stageRef.current.attrs.lastScale;
-    }
-  }, [handleEnd]);
+  const { handleMouseUp, handleTouchEnd } = useEndHandlers(isDrawing, saveLines, newLines, setNewLines, stageRef, setPosition, isPinching, dragStartPos, lastPointerPosition);
 
   const handleWheel = useWheelHandler(stageRef);
 
