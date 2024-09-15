@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Stage, Layer, Line } from "react-konva";
 import clsx from "clsx";
 import Konva from "konva";
@@ -9,9 +9,7 @@ import ZoomControlPanel from "./components/ZoomControlPanel";
 import { LineData } from "@/types";
 import ToolSelectPanel from "./components/ToolSelectPanel";
 import useLines from "./lib/useLines";
-import fetcher from "@/lib/fetcher";
 import DarkModeControlButton from "@/components/DarkModeControlButton";
-import { useZoom } from "./lib/useZoom";
 import { useDefaultLineColor } from "./lib/useDefaultLineColor";
 import useScale from "./lib/useScale";
 import useCanvasTool from "./lib/useCanvasTool";
@@ -21,6 +19,7 @@ import useStageRef from "./lib/useStageRef";
 import useStageContainerRef from "./lib/useStageContainerRef";
 import useLinesMutation from "./lib/useLinesMutation";
 import usePinchHandler from "./lib/usePinchHandler";
+import useWheelHandler from "./lib/useWheelHandler";
 
 const Canva = () => {
   const [lines, setLines] = useLines();
@@ -34,8 +33,6 @@ const Canva = () => {
   const { ref: stageContainerRef, ready: stageContainerReady, width, height } = useStageContainerRef();
 
   const { handlePinch, isPinching } = usePinchHandler(stageRef);
-
-  const handleZoom = useZoom(stageRef);
 
   useEffect(() => {
     if (stageReady && position && stageRef.current) {
@@ -114,18 +111,7 @@ const Canva = () => {
     }
   }, [handleEnd]);
 
-  const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
-    e.evt.preventDefault();
-    const stage = stageRef.current;
-    if (!stage) return;
-
-    const oldScale = stage.scaleX();
-    const pointer = stage.getPointerPosition();
-    if (!pointer) return;
-
-    const newScale = e.evt.deltaY > 0 ? oldScale / 1.1 : oldScale * 1.1;
-    handleZoom(newScale, pointer);
-  }, [handleZoom]);
+  const handleWheel = useWheelHandler(stageRef);
 
   const getDefaultLineColor = useDefaultLineColor();
 
