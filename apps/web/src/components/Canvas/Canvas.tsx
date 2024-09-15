@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Stage, Layer, Line } from "react-konva";
 import clsx from "clsx";
 import Konva from "konva";
