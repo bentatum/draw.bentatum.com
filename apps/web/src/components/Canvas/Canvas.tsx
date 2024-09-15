@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { Stage, Layer, Line } from "react-konva";
-import useDimensions from "@/lib/useDimensions";
 import clsx from "clsx";
 import Konva from "konva";
 import DrawControlPanel from "./components/DrawControlPanel/DrawControlPanel";
@@ -23,6 +22,7 @@ import useStage from "./lib/useStage";
 const Canva = () => {
   const [scale] = useScale();
   const [tool] = useCanvasTool();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_position, setPosition] = useCanvasPosition();
 
   const { stageRef, stageContainerRef, isStageReady, setStageRef, width, height, dimensionsReady } = useStage();
