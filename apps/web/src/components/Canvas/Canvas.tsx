@@ -19,9 +19,11 @@ import useCanvasPosition from "./lib/useCanvasPosition";
 import useCanvasStartHandler from "./lib/useCanvasStartHandler";
 import useStageRef from "./lib/useStageRef";
 import useStageContainerRef from "./lib/useStageContainerRef";
+import useLinesMutation from "./lib/useLinesMutation";
 
 const Canva = () => {
   const [lines, setLines] = useLines();
+  const [newLines, setNewLines] = useState<LineData[]>([]);
 
   const [scale] = useScale();
   const [tool] = useCanvasTool();
@@ -29,8 +31,6 @@ const Canva = () => {
 
   const { ref: stageRef, ready: stageReady, setRef: setStageRef } = useStageRef();
   const { ref: stageContainerRef, ready: stageContainerReady, width, height } = useStageContainerRef();
-
-  const [newLines, setNewLines] = useState<LineData[]>([]);
 
   const handleZoom = useZoom(stageRef);
 
@@ -41,17 +41,7 @@ const Canva = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stageReady]);
 
-  const saveLines = useCallback(async (lines: LineData[]) => {
-    try {
-      await fetcher(`/lines`, {
-        method: 'POST',
-        body: JSON.stringify(lines),
-      });
-      // mutate(); // Refresh the lines after saving
-    } catch (error) {
-      console.error('Error saving lines:', error);
-    }
-  }, []);
+  const saveLines = useLinesMutation();
 
   const getRelativePointerPosition = useCallback((node: Konva.Node) => {
     const transform = node.getAbsoluteTransform().copy();
