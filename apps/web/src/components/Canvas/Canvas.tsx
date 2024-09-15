@@ -13,14 +13,13 @@ import DarkModeControlButton from "@/components/DarkModeControlButton";
 import { useDefaultLineColor } from "./lib/useDefaultLineColor";
 import useScale from "./lib/useScale";
 import useCanvasTool from "./lib/useCanvasTool";
-import useCanvasPosition from "./lib/useCanvasPosition";
 import useStageRef from "./lib/useStageRef";
 import useStageContainerRef from "./lib/useStageContainerRef";
-import useLinesMutation from "./lib/useLinesMutation";
 import usePinchHandler from "./lib/usePinchHandler";
 import useWheelHandler from "./lib/useWheelHandler";
 import useStartHandlers  from "./lib/useStartHandlers";
 import useEndHandlers from "./lib/useEndHandlers";
+import useMoveHandlers from "./lib/useMoveHandlers";
 
 const Canva = () => {
   const [lines, setLines] = useLines();
@@ -28,15 +27,11 @@ const Canva = () => {
 
   const [scale] = useScale();
   const [tool] = useCanvasTool();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [position, setPosition] = useCanvasPosition();
 
   const { ref: stageRef, ready: stageReady, setRef: setStageRef } = useStageRef();
   const { ref: stageContainerRef, ready: stageContainerReady, width, height } = useStageContainerRef();
 
   const { handlePinch, isPinching } = usePinchHandler(stageRef);
-
-  const saveLines = useLinesMutation();
 
   const getRelativePointerPosition = useCallback((node: Konva.Node) => {
     const transform = node.getAbsoluteTransform().copy();
@@ -47,40 +42,30 @@ const Canva = () => {
     return relativePos;
   }, []);
 
-  const { handleMouseDown, handleTouchStart, isDrawing, dragStartPos, lastPointerPosition } = useStartHandlers(getRelativePointerPosition, setLines, setNewLines);
+  const { handleMouseDown, handleTouchStart, isDrawing, dragStartPos, lastPointerPosition } = useStartHandlers({
+    getRelativePointerPosition,
+    setLines,
+    setNewLines
+  });
 
-  const handleMove = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
-    const stage = e.target.getStage();
-    if (!stage || isPinching.current) return; // Disable drawing if pinching
-    if (tool === "pencil" && isDrawing.current) {
-      setLines((prevLines) => {
-        const lastLine = prevLines[prevLines.length - 1];
-        if (!lastLine) return prevLines;
-        const point = getRelativePointerPosition(stage);
-        lastLine.points = lastLine.points?.concat([point.x, point.y]);
-        const newLines = prevLines.slice(0, prevLines.length - 1);
-        return [...newLines, lastLine];
-      });
-    } else if (tool === "hand" && dragStartPos.current && lastPointerPosition.current) {
-      const newPos = stage.getPointerPosition();
-      if (!newPos) return;
+  const { handleMouseMove, handleTouchMove } = useMoveHandlers({
+    isDrawing,
+    setLines,
+    getRelativePointerPosition,
+    isPinching,
+    dragStartPos,
+    lastPointerPosition
+  });
 
-      const dx = newPos.x - lastPointerPosition.current.x;
-      const dy = newPos.y - lastPointerPosition.current.y;
-
-      stage.x(stage.x() + dx);
-      stage.y(stage.y() + dy);
-      stage.batchDraw();
-
-      lastPointerPosition.current = newPos;
-      setPosition(stage.position());
-    }
-  }, [tool, getRelativePointerPosition]);
-
-  const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => handleMove(e);
-  const handleTouchMove = (e: Konva.KonvaEventObject<TouchEvent>) => handleMove(e);
-
-  const { handleMouseUp, handleTouchEnd } = useEndHandlers(isDrawing, saveLines, newLines, setNewLines, stageRef, setPosition, isPinching, dragStartPos, lastPointerPosition);
+  const { handleMouseUp, handleTouchEnd } = useEndHandlers({
+    isDrawing,
+    newLines,
+    setNewLines,
+    stageRef,
+    isPinching,
+    dragStartPos,
+    lastPointerPosition
+  });
 
   const handleWheel = useWheelHandler(stageRef);
 

@@ -4,3 +4,5 @@ export interface LineData {
   brushRadius: number;
   brushOpacity: number;
 }
+
+export type Tool = "pencil" | "hand";

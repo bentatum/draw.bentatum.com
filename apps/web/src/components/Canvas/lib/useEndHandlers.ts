@@ -1,18 +1,33 @@
 import { useCallback, MutableRefObject } from "react";
 import Konva from "konva";
 import { LineData } from "@/types";
+import useCanvasPosition from "./useCanvasPosition";
+import useLinesMutation from "./useLinesMutation";
 
-const useEndHandlers = (
+interface UseEndHandlersProps {
   isDrawing: MutableRefObject<boolean>,
-  saveLines: (lines: LineData[]) => void,
   newLines: LineData[],
   setNewLines: React.Dispatch<React.SetStateAction<LineData[]>>,
   stageRef: MutableRefObject<Konva.Stage | null>,
-  setPosition: (position: { x: number; y: number }) => void,
   isPinching: MutableRefObject<boolean>,
   dragStartPos: MutableRefObject<{ x: number; y: number } | null>,
   lastPointerPosition: MutableRefObject<{ x: number; y: number } | null>
-) => {
+}
+
+const useEndHandlers = ({
+  isDrawing,
+  newLines,
+  setNewLines,
+  stageRef,
+  isPinching,
+  dragStartPos,
+  lastPointerPosition
+}: UseEndHandlersProps) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [position, setPosition] = useCanvasPosition();
+
+  const saveLines = useLinesMutation();
+
   const handleMouseUp = useCallback(() => {
     if (isDrawing.current) {
       saveLines(newLines);
