@@ -3,11 +3,11 @@ import Konva from "konva";
 import useCanvasTool from "./useCanvasTool";
 import useCanvasPosition from "./useCanvasPosition";
 import { LineData } from "@/types";
+import useRelativePointerPosition from "./useRelativePointerPosition";
 
 interface UseMoveHandlersProps {
   isDrawing: MutableRefObject<boolean>;
   setLines: React.Dispatch<React.SetStateAction<LineData[]>>;
-  getRelativePointerPosition: (stage: Konva.Stage) => { x: number; y: number };
   isPinching: MutableRefObject<boolean>;
   dragStartPos: MutableRefObject<{ x: number; y: number } | null>;
   lastPointerPosition: MutableRefObject<{ x: number; y: number } | null>;
@@ -16,7 +16,6 @@ interface UseMoveHandlersProps {
 const useMoveHandlers = ({
   isDrawing,
   setLines,
-  getRelativePointerPosition,
   isPinching,
   dragStartPos,
   lastPointerPosition
@@ -24,6 +23,8 @@ const useMoveHandlers = ({
   const [tool] = useCanvasTool();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [position, setPosition] = useCanvasPosition();
+  const getRelativePointerPosition = useRelativePointerPosition();
+
   const handleMove = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
     const stage = e.target.getStage();
     if (!stage || isPinching.current) return; // Disable drawing if pinching

@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { Stage, Layer, Line } from "react-konva";
 import clsx from "clsx";
-import Konva from "konva";
 import DrawControlPanel from "./components/DrawControlPanel/DrawControlPanel";
 import ZoomControlPanel from "./components/ZoomControlPanel";
 import { LineData } from "@/types";
@@ -15,15 +14,15 @@ import useScale from "./lib/useScale";
 import useCanvasTool from "./lib/useCanvasTool";
 import useStageRef from "./lib/useStageRef";
 import useStageContainerRef from "./lib/useStageContainerRef";
-import usePinchHandler from "./lib/usePinchHandler";
-import useWheelHandler from "./lib/useWheelHandler";
-import useStartHandlers  from "./lib/useStartHandlers";
+import useStartHandlers from "./lib/useStartHandlers";
 import useEndHandlers from "./lib/useEndHandlers";
 import useMoveHandlers from "./lib/useMoveHandlers";
+import useZoomHandlers from "./lib/useZoomHandlers";
 
 const Canva = () => {
   const [lines, setLines] = useLines();
   const [newLines, setNewLines] = useState<LineData[]>([]);
+  const getDefaultLineColor = useDefaultLineColor();
 
   const [scale] = useScale();
   const [tool] = useCanvasTool();
@@ -31,19 +30,9 @@ const Canva = () => {
   const { ref: stageRef, ready: stageReady, setRef: setStageRef } = useStageRef();
   const { ref: stageContainerRef, ready: stageContainerReady, width, height } = useStageContainerRef();
 
-  const { handlePinch, isPinching } = usePinchHandler(stageRef);
-
-  const getRelativePointerPosition = useCallback((node: Konva.Node) => {
-    const transform = node.getAbsoluteTransform().copy();
-    transform.invert();
-    const pos = node.getStage()?.getPointerPosition();
-    if (!pos) return { x: 0, y: 0 };
-    const relativePos = transform.point(pos);
-    return relativePos;
-  }, []);
+  const { handleWheel, handlePinch, isPinching } = useZoomHandlers(stageRef);
 
   const { handleMouseDown, handleTouchStart, isDrawing, dragStartPos, lastPointerPosition } = useStartHandlers({
-    getRelativePointerPosition,
     setLines,
     setNewLines
   });
@@ -51,7 +40,6 @@ const Canva = () => {
   const { handleMouseMove, handleTouchMove } = useMoveHandlers({
     isDrawing,
     setLines,
-    getRelativePointerPosition,
     isPinching,
     dragStartPos,
     lastPointerPosition
@@ -66,10 +54,6 @@ const Canva = () => {
     dragStartPos,
     lastPointerPosition
   });
-
-  const handleWheel = useWheelHandler(stageRef);
-
-  const getDefaultLineColor = useDefaultLineColor();
 
   return (
     <div>
