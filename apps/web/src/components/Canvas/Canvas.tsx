@@ -77,6 +77,8 @@ const HomePage = () => {
     return relativePos;
   }, []);
 
+  const isPinching = useRef(false);
+
   const handleStart = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>, tool: string) => {
     const stage = e.target.getStage();
     if (!stage) return;
@@ -98,7 +100,7 @@ const HomePage = () => {
 
   const handleMove = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
     const stage = e.target.getStage();
-    if (!stage) return;
+    if (!stage || isPinching.current) return; // Disable drawing if pinching
     if (tool === "pencil" && isDrawing.current) {
       setLines((prevLines) => {
         const lastLine = prevLines[prevLines.length - 1];
@@ -143,7 +145,10 @@ const HomePage = () => {
   }, [saveLines, newLines, setPosition]);
 
   const handleMouseUp = handleEnd;
-  const handleTouchEnd = handleEnd;
+  const handleTouchEnd = useCallback(() => {
+    handleEnd();
+    isPinching.current = false; // Reset pinching flag
+  }, [handleEnd]);
 
   const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
@@ -164,6 +169,7 @@ const HomePage = () => {
     if (!stage) return;
 
     if (e.evt.touches.length === 2) {
+      isPinching.current = true; // Set pinching flag
       const touch1 = e.evt.touches[0];
       const touch2 = e.evt.touches[1];
 
@@ -176,6 +182,10 @@ const HomePage = () => {
 
       if (!stage.attrs.lastDist) {
         stage.attrs.lastDist = dist;
+        stage.attrs.lastCenter = {
+          x: (touch1.clientX + touch2.clientX) / 2,
+          y: (touch1.clientY + touch2.clientY) / 2,
+        };
         return;
       }
 
@@ -190,6 +200,7 @@ const HomePage = () => {
       handleZoom(newScale, pointTo);
 
       stage.attrs.lastDist = dist;
+      stage.attrs.lastCenter = pointTo;
     }
   }, [handleZoom]);
 
