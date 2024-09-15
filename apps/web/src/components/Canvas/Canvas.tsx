@@ -148,6 +148,11 @@ const HomePage = () => {
   const handleTouchEnd = useCallback(() => {
     handleEnd();
     isPinching.current = false; // Reset pinching flag
+    if (stageRef.current) {
+      delete stageRef.current.attrs.lastDist;
+      delete stageRef.current.attrs.lastCenter;
+      delete stageRef.current.attrs.lastScale;
+    }
   }, [handleEnd]);
 
   const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
@@ -169,7 +174,6 @@ const HomePage = () => {
     if (!stage) return;
 
     if (e.evt.touches.length === 2) {
-      isPinching.current = true; // Set pinching flag
       const touch1 = e.evt.touches[0];
       const touch2 = e.evt.touches[1];
 
@@ -180,27 +184,23 @@ const HomePage = () => {
         Math.pow(touch1.clientY - touch2.clientY, 2)
       );
 
-      if (!stage.attrs.lastDist) {
-        stage.attrs.lastDist = dist;
-        stage.attrs.lastCenter = {
-          x: (touch1.clientX + touch2.clientX) / 2,
-          y: (touch1.clientY + touch2.clientY) / 2,
-        };
-        return;
-      }
-
       const pointTo = {
         x: (touch1.clientX + touch2.clientX) / 2,
         y: (touch1.clientY + touch2.clientY) / 2,
       };
 
-      const oldScale = stage.scaleX();
+      if (!isPinching.current) {
+        isPinching.current = true; // Set pinching flag
+        stage.attrs.lastDist = dist;
+        stage.attrs.lastCenter = pointTo;
+        stage.attrs.lastScale = stage.scaleX(); // Save the initial scale
+        return;
+      }
+
+      const oldScale = stage.attrs.lastScale || stage.scaleX();
       const newScale = oldScale * (dist / stage.attrs.lastDist);
 
       handleZoom(newScale, pointTo);
-
-      stage.attrs.lastDist = dist;
-      stage.attrs.lastCenter = pointTo;
     }
   }, [handleZoom]);
 
