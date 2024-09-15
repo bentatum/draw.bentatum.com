@@ -20,6 +20,7 @@ import useCanvasStartHandler from "./lib/useCanvasStartHandler";
 import useStageRef from "./lib/useStageRef";
 import useStageContainerRef from "./lib/useStageContainerRef";
 import useLinesMutation from "./lib/useLinesMutation";
+import usePinchHandler from "./lib/usePinchHandler";
 
 const Canva = () => {
   const [lines, setLines] = useLines();
@@ -31,6 +32,8 @@ const Canva = () => {
 
   const { ref: stageRef, ready: stageReady, setRef: setStageRef } = useStageRef();
   const { ref: stageContainerRef, ready: stageContainerReady, width, height } = useStageContainerRef();
+
+  const { handlePinch, isPinching } = usePinchHandler(stageRef);
 
   const handleZoom = useZoom(stageRef);
 
@@ -51,8 +54,6 @@ const Canva = () => {
     const relativePos = transform.point(pos);
     return relativePos;
   }, []);
-
-  const isPinching = useRef(false);
 
   const { handleMouseDown, handleTouchStart, isDrawing, dragStartPos, lastPointerPosition } = useCanvasStartHandler(getRelativePointerPosition, setLines, setNewLines);
 
@@ -124,42 +125,6 @@ const Canva = () => {
 
     const newScale = e.evt.deltaY > 0 ? oldScale / 1.1 : oldScale * 1.1;
     handleZoom(newScale, pointer);
-  }, [handleZoom]);
-
-  const handlePinch = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
-    e.evt.preventDefault();
-    const stage = stageRef.current;
-    if (!stage) return;
-
-    if (e.evt.touches.length === 2) {
-      const touch1 = e.evt.touches[0];
-      const touch2 = e.evt.touches[1];
-
-      if (!touch1 || !touch2) return;
-
-      const dist = Math.sqrt(
-        Math.pow(touch1.clientX - touch2.clientX, 2) +
-        Math.pow(touch1.clientY - touch2.clientY, 2)
-      );
-
-      const pointTo = {
-        x: (touch1.clientX + touch2.clientX) / 2,
-        y: (touch1.clientY + touch2.clientY) / 2,
-      };
-
-      if (!isPinching.current) {
-        isPinching.current = true; // Set pinching flag
-        stage.attrs.lastDist = dist;
-        stage.attrs.lastCenter = pointTo;
-        stage.attrs.lastScale = stage.scaleX(); // Save the initial scale
-        return;
-      }
-
-      const oldScale = stage.attrs.lastScale || stage.scaleX();
-      const newScale = oldScale * (dist / stage.attrs.lastDist);
-
-      handleZoom(newScale, pointTo);
-    }
   }, [handleZoom]);
 
   const getDefaultLineColor = useDefaultLineColor();
