@@ -15,27 +15,19 @@ import DarkModeControlButton from "@/components/DarkModeControlButton";
 import { useZoom } from "./lib/useZoom";
 import { useDefaultLineColor } from "./lib/useDefaultLineColor";
 import useScale from "./lib/useScale";
-import useBrushColor from "./lib/useBrushColor";
-import useBrushRadius from "./lib/useBrushRadius";
-import useBrushOpacity from "./lib/useBrushOpacity";
 import useCanvasTool from "./lib/useCanvasTool";
 import useCanvasPosition from "./lib/useCanvasPosition";
+import useCanvasStartHandler from "./lib/useCanvasStartHandler";
 
-const HomePage = () => {
+const Canva = () => {
   const [lines, setLines] = useLines();
 
   const [scale] = useScale();
-  const [color] = useBrushColor();
-  const [brushRadius] = useBrushRadius();
-  const [brushOpacity] = useBrushOpacity();
   const [tool] = useCanvasTool();
   const [position, setPosition] = useCanvasPosition();
 
-  const isDrawing = useRef(false);
   const stageRef = useRef<Konva.Stage | null>(null);
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
-  const dragStartPos = useRef<{ x: number; y: number } | null>(null);
-  const lastPointerPosition = useRef<{ x: number; y: number } | null>(null);
   const { width, height, dimensionsReady } = useDimensions(stageContainerRef);
   const [newLines, setNewLines] = useState<LineData[]>([]);
   const [isStageReady, setIsStageReady] = useState(false);
@@ -53,7 +45,7 @@ const HomePage = () => {
     if (isStageReady && position && stageRef.current) {
       stageRef.current.position(position);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isStageReady]);
 
   const saveLines = useCallback(async (lines: LineData[]) => {
@@ -79,24 +71,7 @@ const HomePage = () => {
 
   const isPinching = useRef(false);
 
-  const handleStart = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>, tool: string) => {
-    const stage = e.target.getStage();
-    if (!stage) return;
-    if (tool === "pencil") {
-      isDrawing.current = true;
-      const pos = getRelativePointerPosition(stage);
-      const newLine: LineData = { points: [pos.x, pos.y], color, brushRadius, brushOpacity };
-      setLines((prevLines) => [...prevLines, newLine]);
-      setNewLines((prevNewLines) => [...prevNewLines, newLine]);
-    } else if (tool === "hand") {
-      dragStartPos.current = stage.getPointerPosition() || null;
-      lastPointerPosition.current = dragStartPos.current;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color, brushRadius, brushOpacity, getRelativePointerPosition]);
-
-  const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => handleStart(e, tool);
-  const handleTouchStart = (e: Konva.KonvaEventObject<TouchEvent>) => handleStart(e, tool);
+  const { handleMouseDown, handleTouchStart, isDrawing, dragStartPos, lastPointerPosition } = useCanvasStartHandler(getRelativePointerPosition, setLines, setNewLines);
 
   const handleMove = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
     const stage = e.target.getStage();
@@ -263,4 +238,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default Canva;
