@@ -18,35 +18,19 @@ import useScale from "./lib/useScale";
 import useCanvasTool from "./lib/useCanvasTool";
 import useCanvasPosition from "./lib/useCanvasPosition";
 import useCanvasStartHandler from "./lib/useCanvasStartHandler";
+import useStage from "./lib/useStage";
 
 const Canva = () => {
-  const [lines, setLines] = useLines();
-
   const [scale] = useScale();
   const [tool] = useCanvasTool();
-  const [position, setPosition] = useCanvasPosition();
+  const [_position, setPosition] = useCanvasPosition();
 
-  const stageRef = useRef<Konva.Stage | null>(null);
-  const stageContainerRef = useRef<HTMLDivElement | null>(null);
-  const { width, height, dimensionsReady } = useDimensions(stageContainerRef);
+  const { stageRef, stageContainerRef, isStageReady, setStageRef, width, height, dimensionsReady } = useStage();
+
+  const [lines, setLines] = useLines();
   const [newLines, setNewLines] = useState<LineData[]>([]);
-  const [isStageReady, setIsStageReady] = useState(false);
 
   const handleZoom = useZoom(stageRef);
-
-  const setStageRef = (node: Konva.Stage | null) => {
-    if (node) {
-      stageRef.current = node;
-      setIsStageReady(true);
-    }
-  };
-
-  useEffect(() => {
-    if (isStageReady && position && stageRef.current) {
-      stageRef.current.position(position);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isStageReady]);
 
   const saveLines = useCallback(async (lines: LineData[]) => {
     try {
