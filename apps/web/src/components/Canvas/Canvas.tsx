@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Stage, Layer, Line } from "react-konva";
-import useDimensions from "@/lib/useDimensions";
 import clsx from "clsx";
 import Konva from "konva";
 import DrawControlPanel from "./components/DrawControlPanel/DrawControlPanel";
@@ -18,6 +17,8 @@ import useScale from "./lib/useScale";
 import useCanvasTool from "./lib/useCanvasTool";
 import useCanvasPosition from "./lib/useCanvasPosition";
 import useCanvasStartHandler from "./lib/useCanvasStartHandler";
+import useStageRef from "./lib/useStageRef";
+import useStageContainerRef from "./lib/useStageContainerRef";
 
 const Canva = () => {
   const [lines, setLines] = useLines();
@@ -26,27 +27,19 @@ const Canva = () => {
   const [tool] = useCanvasTool();
   const [position, setPosition] = useCanvasPosition();
 
-  const stageRef = useRef<Konva.Stage | null>(null);
-  const stageContainerRef = useRef<HTMLDivElement | null>(null);
-  const { width, height, dimensionsReady } = useDimensions(stageContainerRef);
+  const { ref: stageRef, ready: stageReady, setRef: setStageRef } = useStageRef();
+  const { ref: stageContainerRef, ready: stageContainerReady, width, height } = useStageContainerRef();
+
   const [newLines, setNewLines] = useState<LineData[]>([]);
-  const [isStageReady, setIsStageReady] = useState(false);
 
   const handleZoom = useZoom(stageRef);
 
-  const setStageRef = (node: Konva.Stage | null) => {
-    if (node) {
-      stageRef.current = node;
-      setIsStageReady(true);
-    }
-  };
-
   useEffect(() => {
-    if (isStageReady && position && stageRef.current) {
+    if (stageReady && position && stageRef.current) {
       stageRef.current.position(position);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isStageReady]);
+  }, [stageReady]);
 
   const saveLines = useCallback(async (lines: LineData[]) => {
     try {
@@ -185,7 +178,7 @@ const Canva = () => {
     <div>
       <DarkModeControlButton className="fixed top-4 left-4 z-10" />
 
-      {isStageReady && (
+      {stageReady && (
         <>
           <ToolSelectPanel />
           <DrawControlPanel />
@@ -199,7 +192,7 @@ const Canva = () => {
         })}
         ref={stageContainerRef}
       >
-        {dimensionsReady && (
+        {stageContainerReady && (
           <Stage
             ref={setStageRef}
             width={width}
