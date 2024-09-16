@@ -12,6 +12,7 @@ describe('useLinesMutation', () => {
     const { result } = renderHook(() => useLinesMutation());
 
     await act(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await result.current(lines as any);
     });
 
@@ -30,6 +31,7 @@ describe('useLinesMutation', () => {
     const { result } = renderHook(() => useLinesMutation());
 
     await act(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await result.current(lines as any);
     });
 

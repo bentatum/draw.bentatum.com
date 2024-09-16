@@ -4,6 +4,7 @@ import useCanvasPosition from '../useCanvasPosition';
 import useLinesMutation from '../useLinesMutation';
 import { MutableRefObject } from 'react';
 import Konva from 'konva';
+import { LineData } from '@/types';
 
 jest.mock('../useCanvasPosition', () => jest.fn());
 jest.mock('../useLinesMutation', () => jest.fn());
@@ -13,7 +14,7 @@ const mockUseLinesMutation = useLinesMutation as jest.Mock;
 
 describe('useEndHandlers', () => {
   let isDrawing: MutableRefObject<boolean>;
-  let newLines: any[];
+  let newLines: LineData[];
   let setNewLines: jest.Mock;
   let stageRef: MutableRefObject<Konva.Stage | null>;
   let isPinching: MutableRefObject<boolean>;

@@ -50,6 +50,7 @@ describe('useLines', () => {
 
     const newLines = [{ id: 1, points: [0, 0, 1, 1] }];
     act(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       result.current[1](newLines as any);
     });
 
