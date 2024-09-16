@@ -53,6 +53,7 @@ describe('useWheelHandler', () => {
     } as unknown as Konva.KonvaEventObject<WheelEvent>;
 
     const handleZoom = jest.fn();
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     jest.spyOn(require('../useZoomHandlers'), 'useZoom').mockReturnValue(handleZoom);
 
     result.current(mockEvent);

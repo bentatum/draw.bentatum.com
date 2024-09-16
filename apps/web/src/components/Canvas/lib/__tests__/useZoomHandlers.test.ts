@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import Konva from 'konva';
 import useZoomHandlers from '../useZoomHandlers';
 

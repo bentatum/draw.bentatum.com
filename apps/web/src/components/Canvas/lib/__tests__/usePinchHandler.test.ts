@@ -24,6 +24,7 @@ describe('usePinchHandler', () => {
     };
 
     act(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       result.current.handlePinch(touchEvent as any);
     });
 
@@ -46,6 +47,7 @@ describe('usePinchHandler', () => {
     };
 
     act(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       result.current.handlePinch(touchEvent as any);
     });
 

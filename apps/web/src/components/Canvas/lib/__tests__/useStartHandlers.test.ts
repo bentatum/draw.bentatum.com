@@ -1,7 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import Konva from 'konva';
 import useStartHandlers from '../useStartHandlers';
-import { LineData } from '@/types';
 
 describe('useStartHandlers', () => {
   const setLines = jest.fn();
